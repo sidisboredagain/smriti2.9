@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -6,6 +7,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: [
@@ -17,8 +19,8 @@ export default defineConfig({
         short_name: 'Smriti AI',
         description:
           'Personalized multilingual cognitive care for dementia patients and caregivers.',
-        theme_color: '#57765f',
-        background_color: '#f8f5ef',
+        theme_color: '#bd5b34',
+        background_color: '#faf5eb',
         display: 'standalone',
         scope: '/',
         start_url: '/',

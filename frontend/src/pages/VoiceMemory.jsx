@@ -1,4 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { Globe, Mic, Square } from "lucide-react";
+
+import { Alert } from "../components/ui/alert";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
 
 const API_URL = "http://127.0.0.1:8000";
 const PATIENT_ID = 1;
@@ -278,486 +284,153 @@ function VoiceMemory() {
     message.startsWith("✓");
 
   return (
-    <>
-      <style>{`
-        .voice-memory-page {
-          min-height: 100vh;
-          background: #faf5eb;
-          padding: 96px 7% 45px;
-          box-sizing: border-box;
-          color: #2a2119;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-        }
+    <div className="min-h-screen bg-background px-[7%] pb-[45px] pt-24 font-body text-foreground">
+      <div className="mx-auto max-w-[820px] text-center">
+        <p className="mb-2 text-sm font-bold tracking-[1px] text-primary">
+          SMRITI AI · VOICE MEMORY
+        </p>
 
-        .voice-memory-container {
-          max-width: 820px;
-          margin: 0 auto;
-          text-align: center;
-        }
+        <h1 className="mb-3 font-heading text-[clamp(2rem,6vw,2.75rem)] leading-[1.1] text-foreground">
+          Voice Memory
+        </h1>
 
-        .voice-memory-brand {
-          margin: 0 0 8px;
-          color: #bd5b34;
-          font-size: 14px;
-          font-weight: 700;
-          letter-spacing: 1px;
-        }
+        <p className="mx-auto mb-5 max-w-[650px] text-lg leading-relaxed text-muted-foreground">
+          Speak naturally about a meaningful memory.
+          Smriti AI turns your voice into a saved
+          memory that can later support personalized
+          cognitive activities.
+        </p>
 
-        .voice-memory-title {
-          margin: 0 0 12px;
-          color: #2a2119;
-          font-size: 44px;
-          line-height: 1.1;
-        }
+        <Badge variant="accent" className="mb-7">
+          <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+          {loadingLanguage
+            ? "Loading patient language..."
+            : `Patient language: ${language}`}
+        </Badge>
 
-        .voice-memory-description {
-          max-width: 650px;
-          margin: 0 auto 20px;
-          color: #6e6153;
-          font-size: 18px;
-          line-height: 1.7;
-        }
-
-        .voice-memory-language {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          margin: 0 auto 28px;
-          padding: 8px 12px;
-          border-radius: 999px;
-          background: #fbeee6;
-          color: #9a4728;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        .voice-memory-card {
-          padding: 46px 36px;
-          border: 1px solid #e6d9bf;
-          border-radius: 24px;
-          background: #fffcf6;
-          box-shadow:
-            0 18px 50px
-            rgba(48, 59, 52, .08);
-        }
-
-        .voice-memory-icon-wrap {
-          position: relative;
-          width: 110px;
-          height: 110px;
-          margin: 0 auto 22px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          background: #f2e9d8;
-        }
-
-        .voice-memory-icon {
-          font-size: 60px;
-          line-height: 1;
-        }
-
-        .voice-memory-card-title {
-          margin: 0 0 10px;
-          color: #2a2119;
-          font-size: 28px;
-          line-height: 1.25;
-        }
-
-        .voice-memory-card-description {
-          max-width: 560px;
-          margin: 0 auto 26px;
-          color: #6e6153;
-          font-size: 16px;
-          line-height: 1.65;
-        }
-
-        .voice-memory-example {
-          margin: 0 auto 27px;
-          padding: 14px 18px;
-          max-width: 570px;
-          border-radius: 13px;
-          background: #f5eeda;
-          color: #bd5b34;
-          font-size: 15px;
-          line-height: 1.6;
-        }
-
-        .voice-memory-example-label {
-          display: block;
-          margin-bottom: 5px;
-          color: #948572;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: .8px;
-        }
-
-        .voice-memory-primary-button {
-          min-width: 210px;
-          min-height: 52px;
-          padding: 14px 24px;
-          border: none;
-          border-radius: 12px;
-          background: #bd5b34;
-          color: #ffffff;
-          cursor: pointer;
-          font-size: 16px;
-          font-weight: 700;
-          transition:
-            transform .15s ease,
-            filter .15s ease;
-        }
-
-        .voice-memory-primary-button:hover {
-          filter: brightness(.96);
-          transform: translateY(-1px);
-        }
-
-        .voice-memory-primary-button:disabled {
-          cursor: not-allowed;
-          opacity: .65;
-          transform: none;
-        }
-
-        .voice-memory-stop-button {
-          background: #b3261e;
-        }
-
-        .voice-memory-stop-button:hover {
-          filter: brightness(.96);
-        }
-
-        .voice-memory-recording-area {
-          margin-top: 4px;
-        }
-
-        .voice-memory-recording-status {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 16px;
-          padding: 8px 13px;
-          border-radius: 999px;
-          background: #f8dedc;
-          color: #b3261e;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        .voice-memory-recording-dot {
-          width: 9px;
-          height: 9px;
-          border-radius: 50%;
-          background: #b3261e;
-          animation:
-            voice-memory-pulse
-            1.2s ease-in-out infinite;
-        }
-
-        @keyframes voice-memory-pulse {
-          0%,
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-
-          50% {
-            opacity: .45;
-            transform: scale(.78);
-          }
-        }
-
-        .voice-memory-timer {
-          margin: 0 0 18px;
-          color: #2a2119;
-          font-size: 30px;
-          font-weight: 700;
-          letter-spacing: 1px;
-          font-variant-numeric: tabular-nums;
-        }
-
-        .voice-memory-processing {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          margin-top: 20px;
-          color: #bd5b34;
-          font-weight: 700;
-        }
-
-        .voice-memory-processing-dot {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: #bd5b34;
-          animation:
-            voice-memory-processing
-            1s infinite;
-        }
-
-        @keyframes voice-memory-processing {
-          0%,
-          100% {
-            opacity: .3;
-          }
-
-          50% {
-            opacity: 1;
-          }
-        }
-
-        .voice-memory-message {
-          max-width: 620px;
-          margin: 23px auto 0;
-          padding: 12px 15px;
-          border-radius: 11px;
-          color: #6e6153;
-          background: #f5eeda;
-          line-height: 1.5;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        .voice-memory-message.success {
-          color: #2f7a4d;
-          background: #e3f0e6;
-        }
-
-        .voice-memory-transcript {
-          max-width: 640px;
-          margin: 24px auto 0;
-          padding: 20px;
-          border: 1px solid #efe6d3;
-          border-radius: 15px;
-          background: #f5eeda;
-          text-align: left;
-        }
-
-        .voice-memory-transcript-label {
-          margin: 0 0 8px;
-          color: #948572;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: .8px;
-        }
-
-        .voice-memory-transcript-text {
-          margin: 0;
-          color: #2a2119;
-          font-size: 17px;
-          line-height: 1.7;
-          overflow-wrap: anywhere;
-        }
-
-        .voice-memory-help {
-          margin: 25px 0 0;
-          color: #948572;
-          font-size: 12px;
-          line-height: 1.5;
-        }
-
-        @media (max-width: 600px) {
-          .voice-memory-page {
-            padding: 70px 16px 35px;
-          }
-
-          .voice-memory-title {
-            font-size: 34px;
-          }
-
-          .voice-memory-description {
-            font-size: 16px;
-          }
-
-          .voice-memory-card {
-            padding: 35px 20px;
-            border-radius: 20px;
-          }
-
-          .voice-memory-card-title {
-            font-size: 25px;
-          }
-
-          .voice-memory-primary-button {
-            width: 100%;
-          }
-
-          .voice-memory-icon-wrap {
-            width: 92px;
-            height: 92px;
-          }
-
-          .voice-memory-icon {
-            font-size: 50px;
-          }
-        }
-
-        @media (max-width: 390px) {
-          .voice-memory-page {
-            padding-left: 12px;
-            padding-right: 12px;
-          }
-
-          .voice-memory-title {
-            font-size: 32px;
-          }
-
-          .voice-memory-card {
-            padding: 30px 18px;
-          }
-        }
-      `}</style>
-
-      <div className="voice-memory-page">
-        <div className="voice-memory-container">
-          <p className="voice-memory-brand">
-            SMRITI AI · VOICE MEMORY
-          </p>
-
-          <h1 className="voice-memory-title">
-            Voice Memory
-          </h1>
-
-          <p className="voice-memory-description">
-            Speak naturally about a meaningful memory.
-            Smriti AI turns your voice into a saved
-            memory that can later support personalized
-            cognitive activities.
-          </p>
-
-          <p className="voice-memory-language">
-            🌐{" "}
-            {loadingLanguage
-              ? "Loading patient language..."
-              : `Patient language: ${language}`}
-          </p>
-
-          <div className="voice-memory-card">
-            <div
-              className="voice-memory-icon-wrap"
-              aria-hidden="true"
-            >
-              <span className="voice-memory-icon">
-                🎙️
-              </span>
-            </div>
-
-            <h2 className="voice-memory-card-title">
-              {recording
-                ? "Listening to your memory"
-                : saving
-                ? "Saving your memory"
-                : "Record a memory"}
-            </h2>
-
-            <p className="voice-memory-card-description">
-              {recording
-                ? "Take your time. Speak naturally about a familiar person, place, event, or meaningful moment."
-                : saving
-                ? "Your recording is being transcribed and saved for personalized cognitive care."
-                : "A simple voice recording can become a meaningful memory in the patient's Memory Vault."}
-            </p>
-
-            {!recording &&
-              !saving && (
-                <div className="voice-memory-example">
-                  <span className="voice-memory-example-label">
-                    Try saying
-                  </span>
-
-                  <strong>
-                    “My daughter&apos;s wedding was in Jaipur.”
-                  </strong>
-                </div>
-              )}
-
-            {recording && (
-              <div className="voice-memory-recording-area">
-                <div className="voice-memory-recording-status">
-                  <span className="voice-memory-recording-dot" />
-                  Recording
-                </div>
-
-                <p className="voice-memory-timer">
-                  {formatRecordingTime(
-                    recordingSeconds
-                  )}
-                </p>
-              </div>
-            )}
-
-            {!recording ? (
-              <button
-                type="button"
-                className="voice-memory-primary-button"
-                onClick={startRecording}
-                disabled={
-                  saving ||
-                  loadingLanguage
-                }
-              >
-                {saving
-                  ? "Processing..."
-                  : loadingLanguage
-                  ? "Loading..."
-                  : "🎙 Start Recording"}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="voice-memory-primary-button voice-memory-stop-button"
-                onClick={stopRecording}
-              >
-                ■ Stop Recording
-              </button>
-            )}
-
-            {saving && (
-              <div className="voice-memory-processing">
-                <span className="voice-memory-processing-dot" />
-                Processing your voice memory...
-                <span className="voice-memory-processing-dot" />
-              </div>
-            )}
-
-            {message && (
-              <p
-                className={`voice-memory-message ${
-                  isSuccess
-                    ? "success"
-                    : ""
-                }`}
-              >
-                {message}
-              </p>
-            )}
-
-            {transcript && (
-              <div className="voice-memory-transcript">
-                <p className="voice-memory-transcript-label">
-                  Transcribed memory
-                </p>
-
-                <p className="voice-memory-transcript-text">
-                  {transcript}
-                </p>
-              </div>
-            )}
-
-            <p className="voice-memory-help">
-              Speak in the patient&apos;s preferred
-              language. Your recording is converted
-              into text and saved as a memory.
-            </p>
+        <Card className="rounded-xl p-9 sm:p-11">
+          <div
+            className="mx-auto mb-5 flex h-[110px] w-[110px] items-center justify-center rounded-full bg-memory-icon"
+            aria-hidden="true"
+          >
+            <Mic
+              className="h-14 w-14 text-primary"
+              strokeWidth={1.6}
+            />
           </div>
-        </div>
+
+          <h2 className="mb-2.5 font-heading text-[28px] leading-[1.25] text-foreground">
+            {recording
+              ? "Listening to your memory"
+              : saving
+              ? "Saving your memory"
+              : "Record a memory"}
+          </h2>
+
+          <p className="mx-auto mb-6 max-w-[560px] text-base leading-relaxed text-muted-foreground">
+            {recording
+              ? "Take your time. Speak naturally about a familiar person, place, event, or meaningful moment."
+              : saving
+              ? "Your recording is being transcribed and saved for personalized cognitive care."
+              : "A simple voice recording can become a meaningful memory in the patient's Memory Vault."}
+          </p>
+
+          {!recording &&
+            !saving && (
+              <div className="mx-auto mb-7 max-w-[570px] rounded-[13px] bg-muted px-[18px] py-3.5 text-[15px] leading-relaxed text-primary">
+                <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.8px] text-faint">
+                  Try saying
+                </span>
+
+                <strong>
+                  “My daughter&apos;s wedding was in Jaipur.”
+                </strong>
+              </div>
+            )}
+
+          {recording && (
+            <div className="mt-1">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-destructive-soft px-3.5 py-2 text-[13px] font-bold text-destructive">
+                <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-destructive" />
+                Recording
+              </div>
+
+              <p className="mb-[18px] text-[30px] font-bold tracking-[1px] text-foreground [font-variant-numeric:tabular-nums]">
+                {formatRecordingTime(
+                  recordingSeconds
+                )}
+              </p>
+            </div>
+          )}
+
+          {!recording ? (
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={startRecording}
+              disabled={
+                saving ||
+                loadingLanguage
+              }
+              className="min-w-[210px]"
+            >
+              <Mic className="h-4 w-4" aria-hidden="true" />
+              {saving
+                ? "Processing..."
+                : loadingLanguage
+                ? "Loading..."
+                : "Start Recording"}
+            </Button>
+          ) : (
+            <Button
+              variant="destructive"
+              size="lg"
+              onClick={stopRecording}
+              className="min-w-[210px]"
+            >
+              <Square className="h-4 w-4" aria-hidden="true" />
+              Stop Recording
+            </Button>
+          )}
+
+          {saving && (
+            <div className="mt-5 flex items-center justify-center gap-2 font-bold text-primary">
+              <span className="h-[7px] w-[7px] animate-pulse rounded-full bg-primary" />
+              Processing your voice memory...
+              <span className="h-[7px] w-[7px] animate-pulse rounded-full bg-primary" />
+            </div>
+          )}
+
+          {message && (
+            <Alert
+              variant={isSuccess ? "success" : "info"}
+              className="mx-auto mt-6 max-w-[620px] items-center justify-center text-center text-sm"
+            >
+              {message}
+            </Alert>
+          )}
+
+          {transcript && (
+            <div className="mx-auto mt-6 max-w-[640px] rounded-2xl border border-border bg-muted p-5 text-left">
+              <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.8px] text-faint">
+                Transcribed memory
+              </p>
+
+              <p className="text-[17px] leading-relaxed text-foreground [overflow-wrap:anywhere]">
+                {transcript}
+              </p>
+            </div>
+          )}
+
+          <p className="mt-6 text-xs leading-relaxed text-faint">
+            Speak in the patient&apos;s preferred
+            language. Your recording is converted
+            into text and saved as a memory.
+          </p>
+        </Card>
       </div>
-    </>
+    </div>
   );
 }
 
-export default VoiceMemory; 
+export default VoiceMemory;

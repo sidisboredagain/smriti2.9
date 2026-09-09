@@ -1,4 +1,31 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  ArrowRight,
+  Brain,
+  Clock,
+  Eye,
+  Globe,
+  Heart,
+  ImageIcon,
+  Layers,
+  ListOrdered,
+  Loader2,
+  PartyPopper,
+  PenLine,
+  Puzzle,
+  Search,
+  Target,
+  Undo2,
+  Volume2,
+  Zap,
+} from "lucide-react";
+
+import { cn } from "../lib/utils";
+import { Alert } from "../components/ui/alert";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Progress } from "../components/ui/progress";
 
 const API_URL = "http://127.0.0.1:8000";
 const PATIENT_ID = 1;
@@ -11,6 +38,34 @@ function elapsedSecondsSince(startMs) {
   }
 
   return Math.round((Date.now() - startMs) / 100) / 10;
+}
+
+// Shared "listen to this" control used by the question options, the
+// memory-sequence choices, and the visual-recall cards. Purely
+// presentational - it only mirrors the speakText/speaking/speakingOption
+// props each caller already manages.
+function AudioButton({ label, optionId, speakText, speaking, speakingOption }) {
+  if (!speakText) {
+    return null;
+  }
+
+  const isSpeakingThis = speakingOption === optionId;
+
+  return (
+    <button
+      type="button"
+      onClick={() => speakText(label, optionId)}
+      disabled={speaking && !isSpeakingThis}
+      aria-label={`Listen to ${label}`}
+      className="flex w-[58px] shrink-0 cursor-pointer items-center justify-center rounded-xl border border-primary bg-card text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      {isSpeakingThis ? (
+        <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+      ) : (
+        <Volume2 className="h-5 w-5" aria-hidden="true" />
+      )}
+    </button>
+  );
 }
 
 function MemoryMatchGame({ game, disabled, onSubmit, speakText }) {
@@ -81,7 +136,7 @@ function MemoryMatchGame({ game, disabled, onSubmit, speakText }) {
   }
 
   return (
-    <div className="memory-match-grid">
+    <div className="grid grid-cols-2 gap-3.5">
       {cards.map((card) => {
         const isRevealed = revealed.includes(card.card_id);
         const isFlipped = flipped.includes(card.card_id);
@@ -92,21 +147,27 @@ function MemoryMatchGame({ game, disabled, onSubmit, speakText }) {
           <button
             key={card.card_id}
             type="button"
-            className="memory-match-card"
             onClick={() => handleCardClick(card)}
             disabled={disabled || isRevealed}
-            style={{
-              background: isRevealed ? "#e3f0e6" : isWrong ? "#f8dedc"
+            className={cn(
+              "min-h-[100px] cursor-pointer rounded-lg p-3.5 text-center text-xl font-bold [overflow-wrap:anywhere] transition-colors duration-200 disabled:cursor-not-allowed",
+              isRevealed
+                ? "border-2 border-success bg-success-soft text-foreground"
+                : isWrong
+                ? "border-2 border-destructive bg-destructive-soft text-foreground"
                 : faceUp
-                ? "#fffcf6"
-                : "#bd5b34",
-              color: faceUp ? "#2a2119" : "#faf5eb",
-              border: isRevealed ? "2px solid #2f7a4d" : isWrong ? "2px solid #b3261e"
-                : "1px solid #e6d9bf",
-              cursor: disabled || isRevealed ? "not-allowed" : "pointer",
-            }}
+                ? "border border-border bg-card text-foreground"
+                : "border border-border bg-primary text-background"
+            )}
           >
-            {faceUp ? card.label : "🌿"}
+            {faceUp ? (
+              card.label
+            ) : (
+              <Layers
+                className="mx-auto h-6 w-6 text-background/70"
+                aria-hidden="true"
+              />
+            )}
           </button>
         );
       })}
@@ -170,11 +231,16 @@ function MemorySequenceGame({
 
   return (
     <div>
-      <div className="sequence-slots">
+      <div className="mb-[18px] grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
         {steps.map((_, index) => (
-          <div key={index} className="sequence-slot">
-            <span className="sequence-slot-number">{index + 1}</span>
-            <span className="sequence-slot-label">
+          <div
+            key={index}
+            className="flex min-h-[90px] flex-col items-center justify-center gap-2 rounded-[14px] border-2 border-dashed border-border-strong bg-card p-3 text-center"
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+              {index + 1}
+            </span>
+            <span className="text-[15px] font-bold text-foreground [overflow-wrap:anywhere]">
               {order[index] ? labelFor(order[index]) : "Tap a step below"}
             </span>
           </div>
@@ -182,45 +248,43 @@ function MemorySequenceGame({
       </div>
 
       {order.length > 0 && !disabled && (
-        <button
+        <Button
           type="button"
-          className="sequence-undo-button"
+          variant="outline"
+          size="sm"
           onClick={handleUndoLast}
+          className="mb-4 border-border-strong text-primary"
         >
-          ↩ Undo last step
-        </button>
+          <Undo2 className="h-4 w-4" aria-hidden="true" />
+          Undo last step
+        </Button>
       )}
 
-      <div className="sequence-choices">
+      <div className="grid gap-3">
         {steps.map((step) => {
           const used = chosenIds.has(step.step_id);
 
           return (
-            <div key={step.step_id} className="sequence-choice-row">
+            <div key={step.step_id} className="flex items-stretch gap-2.5">
               <button
                 type="button"
-                className="sequence-choice-button"
                 onClick={() => handleChoose(step)}
                 disabled={disabled || used}
-                style={{
-                  opacity: used ? 0.4 : 1,
-                  cursor: disabled || used ? "not-allowed" : "pointer",
-                }}
+                className={cn(
+                  "min-w-0 flex-1 cursor-pointer rounded-xl border border-border bg-card p-4 text-left text-[17px] text-foreground [overflow-wrap:anywhere] transition-opacity disabled:cursor-not-allowed",
+                  used && "opacity-40"
+                )}
               >
                 {step.label}
               </button>
 
-              {speakText && (
-                <button
-                  type="button"
-                  className="therapy-audio-button"
-                  onClick={() => speakText(step.label, step.step_id)}
-                  disabled={speaking && speakingOption !== step.step_id}
-                  aria-label={`Listen to ${step.label}`}
-                >
-                  {speakingOption === step.step_id ? "🔊" : "🔈"}
-                </button>
-              )}
+              <AudioButton
+                label={step.label}
+                optionId={step.step_id}
+                speakText={speakText}
+                speaking={speaking}
+                speakingOption={speakingOption}
+              />
             </div>
           );
         })}
@@ -262,38 +326,41 @@ function ObjectVisualRecallGame({
   };
 
   return (
-    <div className="visual-recall-grid">
+    <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
       {cards.map((card) => {
         const isSelected = selectedAnswer === card.label;
 
         return (
-          <div key={card.id} className="visual-recall-card-row">
+          <div key={card.id} className="flex items-stretch gap-2.5">
             <button
               type="button"
-              className="visual-recall-card"
               onClick={() => handleChoose(card)}
               disabled={disabled}
-              style={{
-                border: isSelected ? answerResult?.correct ? "3px solid #2f7a4d" : "3px solid #b3261e" : "2px solid #e6d9bf",
-                background: isSelected ? "#fbeee6" : "#fffcf6",
-                cursor: disabled ? "not-allowed" : "pointer",
-              }}
+              className={cn(
+                "flex min-h-[110px] min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg p-3.5 transition-colors disabled:cursor-not-allowed",
+                isSelected
+                  ? cn(
+                      "border-[3px] bg-accent",
+                      answerResult?.correct ? "border-success" : "border-destructive"
+                    )
+                  : "border-2 border-border bg-card"
+              )}
             >
-              <span className="visual-recall-emoji">{card.emoji}</span>
-              <span className="visual-recall-label">{card.label}</span>
+              <span className="text-[40px] leading-none" aria-hidden="true">
+                {card.emoji}
+              </span>
+              <span className="text-base font-bold text-foreground [overflow-wrap:anywhere]">
+                {card.label}
+              </span>
             </button>
 
-            {speakText && (
-              <button
-                type="button"
-                className="therapy-audio-button"
-                onClick={() => speakText(card.label, card.id)}
-                disabled={speaking && speakingOption !== card.id}
-                aria-label={`Listen to ${card.label}`}
-              >
-                {speakingOption === card.id ? "🔊" : "🔈"}
-              </button>
-            )}
+            <AudioButton
+              label={card.label}
+              optionId={card.id}
+              speakText={speakText}
+              speaking={speaking}
+              speakingOption={speakingOption}
+            />
           </div>
         );
       })}
@@ -602,20 +669,20 @@ function Therapy() {
 
   const getCognitiveIcon = (gameType) => {
     const icons = {
-      multiple_choice: "🧠",
-      true_false: "🔎",
-      fill_blank: "✍️",
-      attention: "🎯",
-      routine_recall: "🕰️",
-      pattern_recognition: "🧩",
-      object_recognition: "👀",
-      emotional_engagement: "❤️",
-      memory_match: "🃏",
-      memory_sequence: "🔢",
-      visual_recall: "🖼️",
+      multiple_choice: Brain,
+      true_false: Search,
+      fill_blank: PenLine,
+      attention: Target,
+      routine_recall: Clock,
+      pattern_recognition: Puzzle,
+      object_recognition: Eye,
+      emotional_engagement: Heart,
+      memory_match: Layers,
+      memory_sequence: ListOrdered,
+      visual_recall: ImageIcon,
     };
 
-    return icons[gameType] || "🧠";
+    return icons[gameType] || Brain;
   };
 
   const getDifficultyLabel = (difficulty) => {
@@ -658,647 +725,186 @@ function Therapy() {
   );
 
   return (
-    <>
-      <style>
-        {`
-          .therapy-page {
-            min-height: 100vh;
-            background: #faf5eb;
-            padding: 96px 7% 60px;
-            color: #2a2119;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-          }
-
-          .therapy-container {
-            max-width: 900px;
-            margin: 0 auto;
-          }
-
-          .therapy-label {
-            color: #bd5b34;
-            font-weight: 700;
-            font-size: 14px;
-            letter-spacing: 1px;
-            margin: 0 0 12px;
-          }
-
-          .therapy-title {
-            color: #2a2119;
-            font-size: 46px;
-            line-height: 1.1;
-            margin: 0 0 16px;
-          }
-
-          .therapy-description {
-            color: #6e6153;
-            font-size: 18px;
-            line-height: 1.7;
-            max-width: 650px;
-            margin: 0;
-          }
-
-          .therapy-language {
-            margin-top: 18px;
-            color: #bd5b34;
-            font-size: 15px;
-            font-weight: 700;
-          }
-
-          .therapy-start-button {
-            margin-top: 35px;
-            padding: 15px 24px;
-            border: none;
-            border-radius: 12px;
-            background: #bd5b34;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-          }
-
-          .therapy-session-card {
-            margin-top: 40px;
-            background: #fffcf6;
-            border: 1px solid #e6d9bf;
-            border-radius: 24px;
-            padding: 35px;
-            box-shadow: 0 18px 50px rgba(48, 59, 52, 0.08);
-          }
-
-          .therapy-session-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 20px;
-            margin-bottom: 24px;
-          }
-
-          .therapy-progress-text {
-            color: #bd5b34;
-            font-weight: 700;
-            white-space: nowrap;
-          }
-
-          .therapy-progress-bar {
-            width: 100%;
-            height: 10px;
-            margin: 0 0 28px;
-            border-radius: 999px;
-            background: #efe6d3;
-            overflow: hidden;
-          }
-
-          .therapy-progress-fill {
-            height: 100%;
-            border-radius: 999px;
-            background: #bd5b34;
-          }
-
-          .therapy-game-label {
-            color: #948572;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 0 0 10px;
-          }
-
-          .therapy-cognitive-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            background: #fbeee6;
-            color: #9a4728;
-            font-size: 14px;
-            font-weight: 700;
-            margin-bottom: 14px;
-          }
-
-          .therapy-cognitive-badge-icon {
-            font-size: 17px;
-          }
-
-          .therapy-session-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-          }
-
-          .therapy-meta-pill {
-            display: inline-flex;
-            align-items: center;
-            padding: 7px 10px;
-            border-radius: 999px;
-            background: #f5eeda;
-            color: #6e6153;
-            font-size: 12px;
-            font-weight: 700;
-          }
-
-          .therapy-memory-title {
-            color: #bd5b34;
-            font-size: 14px;
-            font-weight: 700;
-            margin: 0 0 18px;
-          }
-
-          .therapy-question {
-            color: #2a2119;
-            font-size: 30px;
-            line-height: 1.45;
-            margin: 0 0 18px;
-            overflow-wrap: anywhere;
-          }
-
-          .therapy-listen-button {
-            margin-bottom: 24px;
-            padding: 12px 18px;
-            border: 1px solid #bd5b34;
-            border-radius: 10px;
-            background: #fffcf6;
-            color: #bd5b34;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-          }
-
-          .therapy-options {
-            display: grid;
-            gap: 12px;
-          }
-
-          .therapy-option-row {
-            display: flex;
-            gap: 10px;
-            align-items: stretch;
-          }
-
-          .therapy-option-button {
-            flex: 1;
-            min-width: 0;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 17px;
-            text-align: left;
-            overflow-wrap: anywhere;
-          }
-
-          .therapy-audio-button {
-            width: 58px;
-            border-radius: 12px;
-            border: 1px solid #bd5b34;
-            background: #fffcf6;
-            color: #bd5b34;
-            font-size: 20px;
-            cursor: pointer;
-          }
-
-          .memory-match-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-          }
-
-          .memory-match-card {
-            min-height: 100px;
-            border-radius: 16px;
-            font-size: 20px;
-            font-weight: 700;
-            text-align: center;
-            padding: 14px;
-            transition: background 0.2s ease, border 0.2s ease;
-            overflow-wrap: anywhere;
-          }
-
-          .sequence-slots {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 18px;
-          }
-
-          .sequence-slot {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            min-height: 90px;
-            padding: 12px;
-            border-radius: 14px;
-            border: 2px dashed #d8c7a3;
-            background: #fffcf6;
-            text-align: center;
-          }
-
-          .sequence-slot-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 28px;
-            border-radius: 999px;
-            background: #bd5b34;
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 14px;
-          }
-
-          .sequence-slot-label {
-            font-size: 15px;
-            font-weight: 700;
-            color: #2a2119;
-            overflow-wrap: anywhere;
-          }
-
-          .sequence-undo-button {
-            margin-bottom: 16px;
-            padding: 10px 16px;
-            border: 1px solid #d8c7a3;
-            border-radius: 10px;
-            background: #fffcf6;
-            color: #bd5b34;
-            font-weight: 700;
-            cursor: pointer;
-          }
-
-          .sequence-choices {
-            display: grid;
-            gap: 12px;
-          }
-
-          .sequence-choice-row {
-            display: flex;
-            gap: 10px;
-            align-items: stretch;
-          }
-
-          .sequence-choice-button {
-            flex: 1;
-            min-width: 0;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 17px;
-            text-align: left;
-            border: 1px solid #e6d9bf;
-            background: #fffcf6;
-            color: #2a2119;
-            overflow-wrap: anywhere;
-          }
-
-          .visual-recall-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-          }
-
-          .visual-recall-card-row {
-            display: flex;
-            gap: 10px;
-            align-items: stretch;
-          }
-
-          .visual-recall-card {
-            flex: 1;
-            min-width: 0;
-            min-height: 110px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border-radius: 16px;
-            padding: 14px;
-          }
-
-          .visual-recall-emoji {
-            font-size: 40px;
-            line-height: 1;
-          }
-
-          .visual-recall-label {
-            font-size: 16px;
-            font-weight: 700;
-            color: #2a2119;
-            overflow-wrap: anywhere;
-          }
-
-          .therapy-feedback {
-            margin-top: 22px;
-            padding: 15px;
-            border-radius: 12px;
-            background: #f5eeda;
-            font-weight: 700;
-            line-height: 1.5;
-          }
-
-          .therapy-next-button {
-            margin-top: 18px;
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            background: #bd5b34;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-          }
-
-          .therapy-complete {
-            text-align: center;
-            padding: 20px 5px;
-          }
-
-          .therapy-complete-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-          }
-
-          .therapy-complete h2 {
-            margin: 0 0 12px;
-            color: #2a2119;
-            font-size: 32px;
-          }
-
-          .therapy-complete p {
-            margin: 0;
-            color: #6e6153;
-            line-height: 1.6;
-          }
-
-          .therapy-message {
-            margin-top: 22px;
-            color: #b3261e;
-            font-weight: 700;
-            font-size: 16px;
-            line-height: 1.5;
-          }
-
-          @media (max-width: 600px) {
-            .therapy-page {
-              padding: 70px 16px 35px;
-            }
-
-            .therapy-title {
-              font-size: 34px;
-            }
-
-            .therapy-description {
-              font-size: 16px;
-            }
-
-            .therapy-session-card {
-              padding: 20px;
-              border-radius: 18px;
-            }
-
-            .therapy-session-header {
-              flex-direction: column;
-              gap: 8px;
-            }
-
-            .therapy-question {
-              font-size: 24px;
-            }
-
-            .therapy-session-meta {
-              align-items: flex-start;
-            }
-
-            .therapy-cognitive-badge {
-              font-size: 13px;
-            }
-
-            .therapy-option-button {
-              font-size: 16px;
-              padding: 14px;
-            }
-
-            .memory-match-grid,
-            .visual-recall-grid {
-              grid-template-columns: 1fr 1fr;
-              gap: 10px;
-            }
-
-            .memory-match-card {
-              min-height: 84px;
-              font-size: 17px;
-            }
-
-            .sequence-slots {
-              grid-template-columns: 1fr;
-              gap: 8px;
-            }
-
-            .visual-recall-card {
-              min-height: 90px;
-              padding: 10px;
-            }
-
-            .visual-recall-emoji {
-              font-size: 32px;
-            }
-          }
-
-          @media (max-width: 390px) {
-            .therapy-page {
-              padding-left: 12px;
-              padding-right: 12px;
-            }
-
-            .therapy-title {
-              font-size: 32px;
-            }
-
-            .therapy-question {
-              font-size: 22px;
-            }
-
-            .therapy-audio-button {
-              width: 52px;
-            }
-          }
-        `}
-      </style>
-
-      <div className="therapy-page">
-        <div className="therapy-container">
-          <p className="therapy-label">
-            SMRITI AI
-          </p>
-
-          <h1 className="therapy-title">
-            Today&apos;s Therapy Session
-          </h1>
-
-          <p className="therapy-description">
-            A gentle cognitive activity created from familiar
-            memories. Take your time and enjoy the memory.
-          </p>
-
-          <p className="therapy-language">
-            {loadingLanguage
-              ? "Loading patient language..."
-              : `Patient language: ${language}`}
-          </p>
-
-          {!session && (
-            <button
-              className="therapy-start-button"
-              onClick={startTherapySession}
-              disabled={
-                loadingSession || loadingLanguage
-              }
-              style={{
-                cursor:
-                  loadingSession || loadingLanguage
-                    ? "not-allowed"
-                    : "pointer",
-                opacity:
-                  loadingSession || loadingLanguage
-                    ? 0.7
-                    : 1,
-              }}
+    <div className="min-h-screen bg-background px-[7%] pt-24 pb-16 font-body text-foreground">
+      <div className="mx-auto max-w-[900px]">
+        <p className="mb-3 text-sm font-bold tracking-[0.08em] text-primary">
+          SMRITI AI
+        </p>
+
+        <h1 className="text-4xl leading-tight text-foreground sm:text-[2.875rem]">
+          Today&apos;s Therapy Session
+        </h1>
+
+        <p className="mt-4 max-w-[650px] text-lg leading-relaxed text-muted-foreground">
+          A gentle cognitive activity created from familiar
+          memories. Take your time and enjoy the memory.
+        </p>
+
+        <p className="mt-[18px] text-[15px] font-bold text-primary">
+          {loadingLanguage
+            ? "Loading patient language..."
+            : `Patient language: ${language}`}
+        </p>
+
+        {!session && (
+          <Button
+            type="button"
+            variant="primary"
+            size="lg"
+            onClick={startTherapySession}
+            disabled={loadingSession || loadingLanguage}
+            className="mt-9"
+          >
+            {loadingSession ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                Creating 5-question session...
+              </>
+            ) : loadingLanguage ? (
+              "Loading language..."
+            ) : (
+              <>
+                Start 5-Question Session
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </>
+            )}
+          </Button>
+        )}
+
+        {session && !isSessionComplete && currentGame && (
+          <Card className="mt-10 rounded-xl p-6 sm:p-9">
+            <div className="mb-6 flex flex-col items-start justify-between gap-5 sm:flex-row">
+              <div>
+                <p className="mb-2.5 text-[13px] font-bold uppercase tracking-wider text-faint">
+                  Question {currentIndex + 1} of{" "}
+                  {games.length}
+                </p>
+
+                <p className="text-sm font-bold text-primary">
+                  Memory: {currentGame.memory_title}
+                </p>
+              </div>
+
+              <div className="whitespace-nowrap text-sm font-bold text-primary">
+                {sessionCompletedGames} /{" "}
+                {session.total_games} completed
+              </div>
+            </div>
+
+            <Progress value={sessionProgress} trackClassName="mb-7" />
+
+            <Badge variant="accent" className="mb-3.5">
+              {(() => {
+                const CognitiveIcon = getCognitiveIcon(
+                  currentGame.game_type
+                );
+                return (
+                  <CognitiveIcon
+                    className="h-3.5 w-3.5"
+                    aria-hidden="true"
+                  />
+                );
+              })()}
+
+              <span>
+                {getCognitiveTitle(currentGame.game_type)}
+              </span>
+            </Badge>
+
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <Badge variant="muted">
+                <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+                {language}
+              </Badge>
+
+              <Badge variant="muted">
+                <Zap className="h-3.5 w-3.5" aria-hidden="true" />
+                {getDifficultyLabel(currentGame.difficulty)}
+              </Badge>
+            </div>
+
+            <h2 className="mb-4 text-2xl leading-snug text-foreground [overflow-wrap:anywhere] sm:text-[1.875rem]">
+              {currentGame.question}
+            </h2>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => speakText(currentGame.question)}
+              disabled={speaking}
+              className="mb-6 border-primary text-primary hover:border-primary hover:bg-accent"
             >
-              {loadingSession
-                ? "Creating 5-question session..."
-                : loadingLanguage
-                ? "Loading language..."
-                : "Start 5-Question Session →"}
-            </button>
-          )}
+              {speaking && !speakingOption ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Speaking...
+                </>
+              ) : (
+                <>
+                  <Volume2 className="h-4 w-4" aria-hidden="true" />
+                  Listen to Question
+                </>
+              )}
+            </Button>
 
-          {session && !isSessionComplete && currentGame && (
-            <div className="therapy-session-card">
-              <div className="therapy-session-header">
-                <div>
-                  <p className="therapy-game-label">
-                    Question {currentIndex + 1} of{" "}
-                    {games.length}
-                  </p>
-
-                  <p className="therapy-memory-title">
-                    Memory: {currentGame.memory_title}
-                  </p>
-                </div>
-
-                <div className="therapy-progress-text">
-                  {sessionCompletedGames} /{" "}
-                  {session.total_games} completed
-                </div>
-              </div>
-
-              <div className="therapy-progress-bar">
-                <div
-                  className="therapy-progress-fill"
-                  style={{
-                    width: `${sessionProgress}%`,
-                  }}
+            {hasVisualGameUi &&
+              currentGame.game_type === "memory_match" && (
+                <MemoryMatchGame
+                  key={currentGame.game_id}
+                  game={currentGame}
+                  disabled={
+                    checkingAnswer || Boolean(answerResult)
+                  }
+                  onSubmit={checkAnswer}
+                  speakText={speakText}
                 />
-              </div>
+              )}
 
-              <div className="therapy-cognitive-badge">
-                <span className="therapy-cognitive-badge-icon">
-                  {getCognitiveIcon(currentGame.game_type)}
-                </span>
+            {hasVisualGameUi &&
+              currentGame.game_type === "memory_sequence" && (
+                <MemorySequenceGame
+                  key={currentGame.game_id}
+                  game={currentGame}
+                  disabled={
+                    checkingAnswer || Boolean(answerResult)
+                  }
+                  onSubmit={checkAnswer}
+                  speakText={speakText}
+                  speaking={speaking}
+                  speakingOption={speakingOption}
+                />
+              )}
 
-                <span>
-                  {getCognitiveTitle(currentGame.game_type)}
-                </span>
-              </div>
+            {hasVisualGameUi &&
+              currentGame.game_type === "visual_recall" && (
+                <ObjectVisualRecallGame
+                  key={currentGame.game_id}
+                  game={currentGame}
+                  disabled={
+                    checkingAnswer || Boolean(answerResult)
+                  }
+                  onSubmit={checkAnswer}
+                  selectedAnswer={selectedAnswer}
+                  answerResult={answerResult}
+                  speakText={speakText}
+                  speaking={speaking}
+                  speakingOption={speakingOption}
+                />
+              )}
 
-              <div className="therapy-session-meta">
-                <span className="therapy-meta-pill">
-                  🌐 {language}
-                </span>
+            {!hasVisualGameUi && (
+              <div className="grid gap-3">
+                {currentGame.options?.map(
+                  (option, index) => {
+                    const isSelected = selectedAnswer === option;
 
-                <span className="therapy-meta-pill">
-                  ⚡ {getDifficultyLabel(currentGame.difficulty)}
-                </span>
-              </div>
-
-              <h2 className="therapy-question">
-                {currentGame.question}
-              </h2>
-
-              <button
-                className="therapy-listen-button"
-                onClick={() =>
-                  speakText(currentGame.question)
-                }
-                disabled={speaking}
-                style={{
-                  cursor: speaking
-                    ? "not-allowed"
-                    : "pointer",
-                  opacity: speaking ? 0.7 : 1,
-                }}
-              >
-                {speaking && !speakingOption
-                  ? "🔊 Speaking..."
-                  : "🔊 Listen to Question"}
-              </button>
-
-              {hasVisualGameUi &&
-                currentGame.game_type === "memory_match" && (
-                  <MemoryMatchGame
-                    key={currentGame.game_id}
-                    game={currentGame}
-                    disabled={
-                      checkingAnswer || Boolean(answerResult)
-                    }
-                    onSubmit={checkAnswer}
-                    speakText={speakText}
-                  />
-                )}
-
-              {hasVisualGameUi &&
-                currentGame.game_type === "memory_sequence" && (
-                  <MemorySequenceGame
-                    key={currentGame.game_id}
-                    game={currentGame}
-                    disabled={
-                      checkingAnswer || Boolean(answerResult)
-                    }
-                    onSubmit={checkAnswer}
-                    speakText={speakText}
-                    speaking={speaking}
-                    speakingOption={speakingOption}
-                  />
-                )}
-
-              {hasVisualGameUi &&
-                currentGame.game_type === "visual_recall" && (
-                  <ObjectVisualRecallGame
-                    key={currentGame.game_id}
-                    game={currentGame}
-                    disabled={
-                      checkingAnswer || Boolean(answerResult)
-                    }
-                    onSubmit={checkAnswer}
-                    selectedAnswer={selectedAnswer}
-                    answerResult={answerResult}
-                    speakText={speakText}
-                    speaking={speaking}
-                    speakingOption={speakingOption}
-                  />
-                )}
-
-              {!hasVisualGameUi && (
-                <div className="therapy-options">
-                  {currentGame.options?.map(
-                    (option, index) => (
+                    return (
                       <div
-                        className="therapy-option-row"
+                        className="flex items-stretch gap-2.5"
                         key={index}
                       >
                         <button
-                          className="therapy-option-button"
+                          type="button"
                           onClick={() =>
                             checkAnswer(option)
                           }
@@ -1306,146 +912,135 @@ function Therapy() {
                             checkingAnswer ||
                             Boolean(answerResult)
                           }
-                          style={{
-                            border:
-                              selectedAnswer === option
-                                ? answerResult?.correct ? "2px solid #2f7a4d" : answerResult ? "2px solid #b3261e" : "2px solid #2f7a4d"
-                                : "1px solid #e6d9bf",
-                            background:
-                              selectedAnswer === option ? "#fbeee6" : "#fffcf6",
-                            color: "#2a2119",
-                            cursor:
-                              checkingAnswer ||
-                              answerResult
-                                ? "not-allowed"
-                                : "pointer",
-                          }}
+                          className={cn(
+                            "min-w-0 flex-1 cursor-pointer rounded-xl p-4 text-left text-[17px] text-foreground [overflow-wrap:anywhere] transition-colors disabled:cursor-not-allowed",
+                            isSelected
+                              ? cn(
+                                  "border-2 bg-accent",
+                                  answerResult?.correct
+                                    ? "border-success"
+                                    : answerResult
+                                    ? "border-destructive"
+                                    : "border-success"
+                                )
+                              : "border border-border bg-card"
+                          )}
                         >
                           {option}
                         </button>
 
-                        <button
-                          className="therapy-audio-button"
-                          onClick={() =>
-                            speakText(option, option)
-                          }
-                          disabled={
-                            speaking &&
-                            speakingOption !== option
-                          }
-                          aria-label={`Listen to ${option}`}
-                          style={{
-                            cursor:
-                              speaking &&
-                              speakingOption !== option
-                                ? "not-allowed"
-                                : "pointer",
-                          }}
-                        >
-                          {speakingOption === option
-                            ? "🔊"
-                            : "🔈"}
-                        </button>
+                        <AudioButton
+                          label={option}
+                          optionId={option}
+                          speakText={speakText}
+                          speaking={speaking}
+                          speakingOption={speakingOption}
+                        />
                       </div>
-                    )
-                  )}
-                </div>
-              )}
-
-              {answerResult && (
-                <div
-                  className="therapy-feedback"
-                  style={{
-                    color: answerResult.correct ? "#2f7a4d" : "#b3261e",
-                  }}
-                >
-                  {answerResult.correct
-                    ? "✓ Correct! Great job."
-                    : "Take another look at the memory. You can continue when ready."}
-                </div>
-              )}
-
-              {message && !answerResult && (
-                <p className="therapy-message">
-                  {message}
-                </p>
-              )}
-
-              {answerResult && (
-                <button
-                  className="therapy-next-button"
-                  onClick={moveToNextQuestion}
-                  disabled={completingGame}
-                  style={{
-                    cursor: completingGame
-                      ? "not-allowed"
-                      : "pointer",
-                    opacity: completingGame
-                      ? 0.7
-                      : 1,
-                  }}
-                >
-                  {completingGame
-                    ? "Saving progress..."
-                    : currentIndex === games.length - 1
-                    ? "Finish Session →"
-                    : "Next Question →"}
-                </button>
-              )}
-            </div>
-          )}
-
-          {session && isSessionComplete && (
-            <div className="therapy-session-card">
-              <div className="therapy-complete">
-                <div className="therapy-complete-icon">
-                  🎉
-                </div>
-
-                <h2>
-                  Therapy Session Complete
-                </h2>
-
-                <p>
-                  You completed all 5 personalized questions.
-                  Great work!
-                </p>
-
-                <p
-                  style={{
-                    marginTop: "15px",
-                    color: "#bd5b34",
-                    fontWeight: "700",
-                  }}
-                >
-                  {session.total_games} of{" "}
-                  {session.total_games} questions completed
-                </p>
-
-                <button
-                  className="therapy-start-button"
-                  onClick={startTherapySession}
-                  disabled={loadingSession}
-                  style={{
-                    marginTop: "25px",
-                  }}
-                >
-                  {loadingSession
-                    ? "Starting..."
-                    : "Start Another Session →"}
-                </button>
+                    );
+                  }
+                )}
               </div>
-            </div>
-          )}
+            )}
 
-          {message && !answerResult && !session && (
-            <p className="therapy-message">
-              {message}
+            {answerResult && (
+              <Alert
+                variant={answerResult.correct ? "success" : "destructive"}
+                className="mt-6"
+              >
+                {answerResult.correct
+                  ? "✓ Correct! Great job."
+                  : "Take another look at the memory. You can continue when ready."}
+              </Alert>
+            )}
+
+            {message && !answerResult && (
+              <p className="mt-6 text-base leading-relaxed font-bold text-destructive">
+                {message}
+              </p>
+            )}
+
+            {answerResult && (
+              <Button
+                type="button"
+                variant="primary"
+                size="lg"
+                onClick={moveToNextQuestion}
+                disabled={completingGame}
+                className="mt-[18px] w-full"
+              >
+                {completingGame ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    Saving progress...
+                  </>
+                ) : currentIndex === games.length - 1 ? (
+                  <>
+                    Finish Session
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </>
+                ) : (
+                  <>
+                    Next Question
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </>
+                )}
+              </Button>
+            )}
+          </Card>
+        )}
+
+        {session && isSessionComplete && (
+          <Card className="mt-10 rounded-xl p-6 text-center sm:p-9">
+            <PartyPopper
+              className="mx-auto mb-4 h-12 w-12 text-primary"
+              aria-hidden="true"
+            />
+
+            <h2 className="mb-3 text-[2rem] text-foreground">
+              Therapy Session Complete
+            </h2>
+
+            <p className="leading-relaxed text-muted-foreground">
+              You completed all 5 personalized questions.
+              Great work!
             </p>
-          )}
-        </div>
+
+            <p className="mt-4 font-bold text-primary">
+              {session.total_games} of{" "}
+              {session.total_games} questions completed
+            </p>
+
+            <Button
+              type="button"
+              variant="primary"
+              size="lg"
+              onClick={startTherapySession}
+              disabled={loadingSession}
+              className="mt-6"
+            >
+              {loadingSession ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Starting...
+                </>
+              ) : (
+                <>
+                  Start Another Session
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </>
+              )}
+            </Button>
+          </Card>
+        )}
+
+        {message && !answerResult && !session && (
+          <p className="mt-6 text-base leading-relaxed font-bold text-destructive">
+            {message}
+          </p>
+        )}
       </div>
-    </>
+    </div>
   );
 }
 

@@ -1,5 +1,10 @@
-import React, { useEffect, useState } from "react";
-import "./App.css";
+import { useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, BookOpen, Heart, Sparkles, Target, Users, WifiOff } from "lucide-react";
+
+import { Badge } from "./components/ui/badge";
+import { Button } from "./components/ui/button";
+import { Card } from "./components/ui/card";
+import GradientBackdrop from "./components/GradientBackdrop";
 import Therapy from "./pages/Therapy";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -246,26 +251,10 @@ function App() {
     }
 
     return (
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 5000,
-          padding: "10px 16px",
-          background: "#fff1d8",
-          borderBottom: "1px solid #e4c98c",
-          color: "#6d5420",
-          textAlign: "center",
-          fontSize: "14px",
-          fontWeight: "700",
-          boxShadow:
-            "0 4px 12px rgba(48, 59, 52, 0.08)",
-        }}
-      >
-        📴 You are offline. Cached app content is available, but
-        some caregiver features need an internet connection.
+      <div className="fixed inset-x-0 top-0 z-[5000] flex items-center justify-center gap-2 border-b border-warning-soft-border bg-warning-soft px-4 py-2.5 text-center text-sm font-bold text-warning shadow-brand-sm">
+        <WifiOff className="h-4 w-4 shrink-0" aria-hidden="true" />
+        You are offline. Cached app content is available, but some caregiver
+        features need an internet connection.
       </div>
     );
   };
@@ -276,46 +265,19 @@ function App() {
     backLabel = "Back"
   ) => {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          position: "relative",
-        }}
-      >
+      <div className="relative min-h-screen">
         {renderOfflineBanner()}
 
-        <button
+        <Button
+          variant="outline"
           onClick={() => goToPage(backPage)}
-          style={{
-            position: "fixed",
-            top: isOnline ? "20px" : "58px",
-            left: "20px",
-            zIndex: 1000,
-            padding: "11px 16px",
-            border: "1px solid var(--brand-primary)",
-            borderRadius: "10px",
-            background: "var(--surface, #fffcf6)",
-            color: "var(--brand-soft-text)",
-            fontSize: "14px",
-            fontWeight: "700",
-            cursor: "pointer",
-            boxShadow:
-              "0 6px 16px rgba(42, 33, 25, 0.08)",
-            transition: "transform 0.2s ease, box-shadow 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-2px)";
-            e.currentTarget.style.boxShadow =
-              "0 10px 22px rgba(42, 33, 25, 0.12)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow =
-              "0 6px 16px rgba(42, 33, 25, 0.08)";
-          }}
+          className={`fixed left-5 z-[1000] bg-card shadow-brand-sm ${
+            isOnline ? "top-5" : "top-[58px]"
+          }`}
         >
-          ← {backLabel}
-        </button>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          {backLabel}
+        </Button>
 
         {component}
       </div>
@@ -403,143 +365,140 @@ function App() {
   }
 
   return (
-    <div className="app">
+    <div className="min-h-screen">
       {renderOfflineBanner()}
 
       <header
-        className="navbar"
-        style={{
-          paddingTop: isOnline ? undefined : "48px",
-        }}
+        className={`flex w-full items-center justify-between gap-5 border-b border-border bg-card px-[7%] py-5 ${
+          isOnline ? "" : "pt-12"
+        }`}
       >
-        <div className="brand">
-          <div className="brand-logo">
+        <div className="flex min-w-0 items-center gap-3.5">
+          <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl bg-logo font-heading text-xl font-bold text-accent-foreground">
             स्मृति
           </div>
 
           <div>
-            <h1>Smriti AI</h1>
-            <span>
+            <h1 className="text-2xl tracking-tight text-foreground">
+              Smriti AI
+            </h1>
+            <span className="mt-1 block text-[13px] text-faint">
               Memory-powered dementia care
             </span>
           </div>
         </div>
 
-        <button
-          className="login-button"
-          onClick={() => goToPage("login")}
-        >
+        <Button variant="outline" onClick={() => goToPage("login")}>
           Caregiver Login
-        </button>
+        </Button>
       </header>
 
-      <main className="hero-section">
-        <div className="hero-content fade-up">
-          <div className="badge">
-            🧠 Personalized cognitive care
-          </div>
+      <main className="relative mx-auto grid w-[86%] max-w-[1150px] grid-cols-1 items-center gap-10 overflow-hidden py-16 lg:grid-cols-[1.15fr_0.85fr] lg:gap-[70px] lg:py-24">
+        <div className="min-w-0 max-w-[650px] animate-fade-up">
+          <Badge variant="accent" className="mb-6">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+            Personalized cognitive care
+          </Badge>
 
-          <h2>
+          <h2 className="max-w-full text-[clamp(2.6rem,6vw,4.25rem)] leading-[1.05] tracking-tight text-foreground">
             Memories that matter.
             <br />
-            <span>Care that remembers.</span>
+            <span className="text-secondary">Care that remembers.</span>
           </h2>
 
-          <p>
-            Smriti AI transforms a person's own memories into
-            personalized cognitive activities, helping
-            caregivers support meaningful, familiar therapy.
+          <p className="mt-6 mb-8 max-w-[590px] text-lg leading-relaxed text-muted-foreground">
+            Smriti AI transforms a person&apos;s own memories into
+            personalized cognitive activities, helping caregivers support
+            meaningful, familiar therapy.
           </p>
 
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              flexWrap: "wrap",
-            }}
-          >
-            <button
-              className="primary-button"
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="primary"
+              size="lg"
               onClick={() => goToPage("therapy")}
             >
-              Start a Therapy Session →
-            </button>
+              Start a Therapy Session
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
 
-            <button
-              className="login-button"
+            <Button
+              variant="outline"
+              size="lg"
               onClick={() => goToPage("memory-vault")}
             >
               Open Memory Vault
-            </button>
+            </Button>
 
-            <button
-              className="login-button"
+            <Button
+              variant="outline"
+              size="lg"
               onClick={() => goToPage("voice-memory")}
             >
               Record a Voice Memory
-            </button>
+            </Button>
           </div>
         </div>
 
-        <div
-          className="memory-card fade-up"
-          style={{ animationDelay: "0.12s" }}
+        <Card
+          className="relative min-h-[390px] animate-fade-up overflow-hidden p-10 [animation-delay:120ms] hover:-translate-y-1 transition-transform duration-300"
         >
-          <div className="memory-icon">
-            🌸
+          <GradientBackdrop className="opacity-[0.16]" />
+          <div className="relative flex h-full flex-col justify-center">
+            <div className="mb-6 flex h-[70px] w-[70px] shrink-0 items-center justify-center rounded-[22px] bg-memory-icon">
+              <Heart className="h-7 w-7 text-primary" aria-hidden="true" />
+            </div>
+
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-faint">
+              A precious memory
+            </p>
+
+            <h3 className="text-2xl text-foreground">Family Wedding</h3>
+
+            <p className="my-4 text-[17px] leading-relaxed text-muted-foreground">
+              &quot;A beautiful day with the whole family in Jaipur.&quot;
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="tag">Family</Badge>
+              <Badge variant="tag">Jaipur</Badge>
+              <Badge variant="tag">Wedding</Badge>
+            </div>
           </div>
-
-          <p className="memory-label">
-            A precious memory
-          </p>
-
-          <h3>Family Wedding</h3>
-
-          <p className="memory-text">
-            "A beautiful day with the whole family in Jaipur."
-          </p>
-
-          <div className="memory-tags">
-            <span>Family</span>
-            <span>Jaipur</span>
-            <span>Wedding</span>
-          </div>
-        </div>
+        </Card>
       </main>
 
-      <section className="features">
-        <div className="feature fade-up" style={{ animationDelay: "0.05s" }}>
-          <div className="feature-icon">📖</div>
-
-          <h3>Memory Vault</h3>
-
-          <p>
-            Store meaningful stories, people, places, and
-            moments.
-          </p>
-        </div>
-
-        <div className="feature fade-up" style={{ animationDelay: "0.15s" }}>
-          <div className="feature-icon">🎯</div>
-
-          <h3>Personalized Games</h3>
-
-          <p>
-            Turn familiar memories into gentle cognitive
-            exercises.
-          </p>
-        </div>
-
-        <div className="feature fade-up" style={{ animationDelay: "0.25s" }}>
-          <div className="feature-icon">👨‍👩‍👧</div>
-
-          <h3>Caregiver Support</h3>
-
-          <p>
-            Track progress and understand each therapy
-            session.
-          </p>
-        </div>
+      <section className="mx-auto grid w-[86%] max-w-[1150px] grid-cols-1 gap-6 pb-20 md:grid-cols-3">
+        {[
+          {
+            icon: BookOpen,
+            title: "Memory Vault",
+            text: "Store meaningful stories, people, places, and moments.",
+            delay: "50ms",
+          },
+          {
+            icon: Target,
+            title: "Personalized Games",
+            text: "Turn familiar memories into gentle cognitive exercises.",
+            delay: "150ms",
+          },
+          {
+            icon: Users,
+            title: "Caregiver Support",
+            text: "Track progress and understand each therapy session.",
+            delay: "250ms",
+          },
+        ].map(({ icon: Icon, title, text, delay }) => (
+          <Card
+            key={title}
+            className="animate-fade-up p-7 transition-all duration-300 hover:-translate-y-1 hover:border-accent-border hover:shadow-brand-lg"
+            style={{ animationDelay: delay }}
+          >
+            <Icon className="mb-4 h-7 w-7 text-primary" aria-hidden="true" />
+            <h3 className="mb-2 text-xl text-foreground">{title}</h3>
+            <p className="leading-relaxed text-faint">{text}</p>
+          </Card>
+        ))}
       </section>
     </div>
   );

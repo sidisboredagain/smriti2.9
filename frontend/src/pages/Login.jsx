@@ -1,4 +1,12 @@
 import { useState } from "react";
+import { HeartHandshake } from "lucide-react";
+
+import { Alert } from "../components/ui/alert";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Input, Label } from "../components/ui/input";
+import GradientBackdrop from "../components/GradientBackdrop";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -49,148 +57,90 @@ function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#faf5eb",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "40px 20px",
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "460px",
-          background: "#fffcf6",
-          border: "1px solid #e6d9bf",
-          borderRadius: "24px",
-          padding: "40px",
-          boxShadow: "0 18px 50px rgba(48, 59, 52, 0.08)",
-        }}
-      >
-        <p
-          style={{
-            color: "#bd5b34",
-            fontWeight: "700",
-            fontSize: "14px",
-            letterSpacing: "1px",
-            margin: "0 0 10px",
-          }}
-        >
-          SMRITI AI
-        </p>
+    <div className="flex min-h-screen w-full flex-col bg-background font-body lg:flex-row">
+      <div className="relative flex min-h-[320px] w-full items-center overflow-hidden px-8 py-16 sm:px-12 lg:min-h-screen lg:w-1/2 lg:px-16">
+        <GradientBackdrop className="opacity-90" />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/40"
+        />
 
-        <h1
-          style={{
-            color: "#2a2119",
-            fontSize: "38px",
-            margin: "0 0 10px",
-          }}
-        >
-          Caregiver Login
-        </h1>
+        <div className="relative z-10 mx-auto w-full max-w-md animate-fade-up">
+          <div className="mb-8 flex h-[64px] w-[64px] items-center justify-center rounded-2xl bg-logo font-heading text-2xl font-bold text-accent-foreground shadow-brand-md">
+            स्मृति
+          </div>
 
-        <p
-          style={{
-            color: "#6e6153",
-            lineHeight: "1.6",
-            marginBottom: "30px",
-          }}
-        >
-          Sign in to access your caregiver dashboard.
-        </p>
+          <Badge className="mb-6 border-white/25 bg-white/15 text-white backdrop-blur-sm">
+            <HeartHandshake className="h-3.5 w-3.5" aria-hidden="true" />
+            Caregiver Portal
+          </Badge>
 
-        <form onSubmit={handleLogin}>
-          <label
-            style={{
-              display: "block",
-              color: "#9a4728",
-              fontWeight: "600",
-              marginBottom: "8px",
-            }}
-          >
-            Email
-          </label>
+          <h1 className="mb-4 text-[clamp(2.25rem,4.5vw,3.25rem)] leading-[1.1] text-white">
+            Smriti AI
+          </h1>
 
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="Enter your email"
-            required
-            style={{
-              width: "100%",
-              padding: "14px",
-              marginBottom: "20px",
-              border: "1px solid #e6d9bf",
-              borderRadius: "10px",
-              fontSize: "16px",
-              outline: "none",
-            }}
-          />
-
-          <label
-            style={{
-              display: "block",
-              color: "#9a4728",
-              fontWeight: "600",
-              marginBottom: "8px",
-            }}
-          >
-            Password
-          </label>
-
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter your password"
-            required
-            style={{
-              width: "100%",
-              padding: "14px",
-              marginBottom: "24px",
-              border: "1px solid #e6d9bf",
-              borderRadius: "10px",
-              fontSize: "16px",
-              outline: "none",
-            }}
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: "100%",
-              padding: "15px",
-              border: "none",
-              borderRadius: "12px",
-              background: "#bd5b34",
-              color: "#ffffff",
-              fontSize: "17px",
-              fontWeight: "700",
-              cursor: "pointer",
-            }}
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
-
-        {message && (
-          <p
-            style={{
-              marginTop: "20px",
-              color: message.startsWith("✓") ? "#2f7a4d" : "#b3261e",
-              fontWeight: "700",
-              textAlign: "center",
-            }}
-          >
-            {message}
+          <p className="max-w-sm text-lg leading-relaxed text-white/85">
+            Sign in to keep every memory, routine, and moment of care close
+            at hand for the people you look after.
           </p>
-        )}
+        </div>
+      </div>
+
+      <div className="flex w-full flex-1 items-center justify-center px-6 py-12 sm:px-10 lg:w-1/2 lg:px-16">
+        <Card className="w-full max-w-md animate-fade-up p-8 sm:p-10">
+          <p className="mb-2 text-sm font-bold uppercase tracking-wider text-primary">
+            Welcome back
+          </p>
+
+          <h2 className="mb-2 text-3xl text-foreground">Caregiver Login</h2>
+
+          <p className="mb-8 leading-relaxed text-muted-foreground">
+            Sign in to access your caregiver dashboard.
+          </p>
+
+          <form onSubmit={handleLogin}>
+            <Label htmlFor="login-email">Email</Label>
+            <Input
+              id="login-email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="Enter your email"
+              required
+              className="mb-5"
+            />
+
+            <Label htmlFor="login-password">Password</Label>
+            <Input
+              id="login-password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter your password"
+              required
+              className="mb-6"
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+
+          {message && (
+            <Alert
+              variant={message.startsWith("✓") ? "success" : "destructive"}
+              className="mt-6 justify-center text-center"
+            >
+              {message}
+            </Alert>
+          )}
+        </Card>
       </div>
     </div>
   );

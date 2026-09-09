@@ -1,905 +1,49 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  Bell,
+  BookOpen,
+  Brain,
+  CheckCircle2,
+  Circle,
+  Clock,
+  Coffee,
+  Droplet,
+  Footprints,
+  LogOut,
+  Mic,
+  MapPin,
+  PartyPopper,
+  PawPrint,
+  Pill,
+  Settings2,
+  Stethoscope,
+  User,
+  Users,
+} from "lucide-react";
+
+import { cn } from "../lib/utils";
+import { Alert } from "../components/ui/alert";
+import { Badge } from "../components/ui/badge";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import GlassSurface from "../components/GlassSurface";
+import { Input, Label, Textarea } from "../components/ui/input";
+import { Progress } from "../components/ui/progress";
 
 const API_URL = "http://127.0.0.1:8000";
 const PATIENT_ID = 1;
 
-const DASHBOARD_STYLES = `
-        .dashboard-page {
-          min-height: 100vh;
-          background: #faf5eb;
-          padding: 96px 7% 45px;
-          box-sizing: border-box;
-          color: #2a2119;
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-        }
-
-        .dashboard-container {
-          max-width: 1100px;
-          margin: 0 auto;
-        }
-
-        .dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 24px;
-          margin-bottom: 32px;
-        }
-
-        .dashboard-header-content {
-          min-width: 0;
-        }
-
-        .dashboard-label {
-          margin: 0 0 8px;
-          color: #bd5b34;
-          font-size: 14px;
-          font-weight: 700;
-          letter-spacing: 1px;
-        }
-
-        .dashboard-title {
-          margin: 0 0 10px;
-          color: #2a2119;
-          font-size: 44px;
-          line-height: 1.1;
-        }
-
-        .dashboard-subtitle {
-          margin: 0;
-          max-width: 680px;
-          color: #6e6153;
-          font-size: 18px;
-          line-height: 1.6;
-        }
-
-        .dashboard-logout {
-          border: 1px solid #d8c7a3;
-          background: transparent;
-          color: #9a4728;
-          padding: 11px 18px;
-          border-radius: 10px;
-          cursor: pointer;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .dashboard-grid {
-          display: grid;
-          grid-template-columns: repeat(
-            4,
-            minmax(0, 1fr)
-          );
-          gap: 16px;
-          margin-bottom: 25px;
-        }
-
-        .dashboard-stat,
-        .dashboard-panel {
-          background: #fffcf6;
-          border: 1px solid #e6d9bf;
-          border-radius: 20px;
-        }
-
-        .dashboard-stat {
-          padding: 22px;
-          min-width: 0;
-        }
-
-        .dashboard-stat-label,
-        .dashboard-session-label,
-        .dashboard-info-label,
-        .dashboard-reminder-summary-label {
-          margin: 0 0 7px;
-          color: #948572;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: .8px;
-        }
-
-        .dashboard-stat-value {
-          margin: 0;
-          color: #2a2119;
-          font-size: 26px;
-          font-weight: 700;
-          overflow-wrap: anywhere;
-        }
-
-        .dashboard-main-grid {
-          display: grid;
-          grid-template-columns:
-            minmax(0, 1.05fr)
-            minmax(0, .95fr);
-          gap: 25px;
-          align-items: start;
-        }
-
-        .dashboard-panel {
-          padding: 28px;
-          min-width: 0;
-        }
-
-        .dashboard-panel + .dashboard-panel {
-          margin-top: 25px;
-        }
-
-        .dashboard-panel-title {
-          margin: 0 0 20px;
-          color: #2a2119;
-          font-size: 22px;
-        }
-
-        .dashboard-patient-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 14px;
-        }
-
-        .dashboard-info-box,
-        .dashboard-session,
-        .dashboard-reminder-summary-box {
-          background: #f5eeda;
-          border-radius: 14px;
-        }
-
-        .dashboard-info-box {
-          padding: 16px;
-          min-width: 0;
-        }
-
-        .dashboard-info-value,
-        .dashboard-session-value {
-          margin: 0;
-          color: #2a2119;
-          font-size: 17px;
-          font-weight: 700;
-          overflow-wrap: anywhere;
-        }
-
-        .dashboard-activity {
-          margin-top: 25px;
-        }
-
-        .dashboard-subheading {
-          margin: 0 0 14px;
-          color: #2a2119;
-          font-size: 18px;
-        }
-
-        .dashboard-activity-list,
-        .dashboard-reminder-list {
-          display: grid;
-          gap: 11px;
-        }
-
-        .dashboard-activity-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 12px;
-          background: #f5eeda;
-          border-radius: 12px;
-          padding: 14px;
-        }
-
-        .dashboard-activity-icon,
-        .dashboard-reminder-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex: 0 0 auto;
-          border-radius: 10px;
-          background: #fbeee6;
-        }
-
-        .dashboard-activity-icon {
-          width: 34px;
-          height: 34px;
-        }
-
-        .dashboard-reminder-icon {
-          width: 38px;
-          height: 38px;
-          font-size: 20px;
-        }
-
-        .dashboard-activity-content,
-        .dashboard-reminder-content {
-          min-width: 0;
-        }
-
-        .dashboard-activity-title,
-        .dashboard-reminder-title {
-          margin: 0 0 4px;
-          color: #2a2119;
-          font-weight: 700;
-          overflow-wrap: anywhere;
-        }
-
-        .dashboard-activity-text,
-        .dashboard-reminder-meta,
-        .dashboard-empty {
-          margin: 0;
-          color: #948572;
-          font-size: 14px;
-          line-height: 1.5;
-          overflow-wrap: anywhere;
-        }
-
-        .dashboard-session {
-          padding: 18px;
-        }
-
-        .dashboard-session-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 15px;
-        }
-
-        .dashboard-session-progress-value {
-          color: #bd5b34;
-          font-size: 24px;
-          font-weight: 700;
-        }
-
-        .dashboard-progress-bar {
-          width: 100%;
-          height: 10px;
-          margin-top: 15px;
-          border-radius: 999px;
-          background: #efe6d3;
-          overflow: hidden;
-        }
-
-        .dashboard-progress-fill {
-          height: 100%;
-          border-radius: 999px;
-          background: #bd5b34;
-        }
-
-        /*
-         * Memory graph
-         */
-
-        .memory-graph-intro {
-          margin: -8px 0 20px;
-          color: #6e6153;
-          line-height: 1.6;
-        }
-
-        .memory-graph-stats {
-          display: grid;
-          grid-template-columns:
-            repeat(3, minmax(0, 1fr));
-          gap: 10px;
-          margin-bottom: 18px;
-        }
-
-        .memory-graph-stat {
-          padding: 14px;
-          background: #f5eeda;
-          border-radius: 12px;
-        }
-
-        .memory-graph-stat-label {
-          margin: 0 0 5px;
-          color: #948572;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-        }
-
-        .memory-graph-stat-value {
-          margin: 0;
-          color: #2a2119;
-          font-size: 20px;
-          font-weight: 700;
-        }
-
-        .memory-graph-visual {
-          padding: 18px;
-          border: 1px solid #e6d9bf;
-          border-radius: 18px;
-          background:
-            linear-gradient(
-              145deg,
-              #fffcf6,
-              #f5eeda
-            );
-        }
-
-        .memory-graph-visual-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 16px;
-          margin-bottom: 16px;
-        }
-
-        .memory-graph-visual-title {
-          margin: 0;
-          color: #2a2119;
-          font-size: 16px;
-          font-weight: 700;
-        }
-
-        .memory-graph-visual-subtitle {
-          margin: 4px 0 0;
-          color: #948572;
-          font-size: 13px;
-          line-height: 1.5;
-        }
-
-        .memory-graph-legend {
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-        }
-
-        .memory-graph-legend-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 6px 9px;
-          border: 1px solid #efe6d3;
-          border-radius: 999px;
-          background: #ffffff;
-          color: #6e6153;
-          font-size: 11px;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .memory-graph-board {
-          display: grid;
-          grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-          gap: 12px;
-        }
-
-        .memory-graph-cluster {
-          min-width: 0;
-          padding: 14px;
-          border: 1px solid #efe6d3;
-          border-radius: 14px;
-          background: rgba(
-            255,
-            253,
-            249,
-            .88
-          );
-        }
-
-        .memory-graph-memory-node {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          min-width: 0;
-          padding: 11px 12px;
-          border-radius: 12px;
-          background: #bd5b34;
-          color: #ffffff;
-          font-size: 14px;
-          font-weight: 700;
-          box-shadow:
-            0 7px 18px
-            rgba(
-              87,
-              118,
-              95,
-              .14
-            );
-        }
-
-        .memory-graph-memory-node
-          span:last-child {
-          min-width: 0;
-          overflow-wrap: anywhere;
-        }
-
-        .memory-graph-links {
-          display: grid;
-          gap: 8px;
-          margin-top: 11px;
-        }
-
-        .memory-graph-link {
-          display: grid;
-          grid-template-columns:
-            auto
-            minmax(72px, .55fr)
-            minmax(0, 1fr);
-          align-items: center;
-          gap: 8px;
-        }
-
-        .memory-graph-branch {
-          color: #b8a888;
-          font-size: 18px;
-          line-height: 1;
-        }
-
-        .memory-graph-connector {
-          color: #948572;
-          font-size: 10px;
-          font-weight: 700;
-          text-align: center;
-        }
-
-        .memory-graph-fact-node {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          min-width: 0;
-          padding: 7px 9px;
-          border-radius: 10px;
-          background: #f2e9d8;
-          color: #6e6153;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .memory-graph-fact-node
-          span:last-child {
-          min-width: 0;
-          overflow-wrap: anywhere;
-        }
-
-        .memory-graph-connections {
-          display: grid;
-          gap: 10px;
-          margin-top: 16px;
-        }
-
-        .memory-graph-connections-title {
-          margin: 0;
-          color: #2a2119;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        .memory-graph-connection {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
-          padding: 12px;
-          border-radius: 12px;
-          background: #f5eeda;
-        }
-
-        .memory-graph-node {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 7px 10px;
-          border-radius: 999px;
-          background: #fbeee6;
-          color: #9a4728;
-          font-size: 13px;
-          font-weight: 700;
-          max-width: 100%;
-        }
-
-        .memory-graph-node
-          span:last-child {
-          overflow-wrap: anywhere;
-        }
-
-        .memory-graph-arrow {
-          color: #948572;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        /*
-         * Reminders
-         */
-
-        .dashboard-reminder-summary {
-          display: grid;
-          grid-template-columns:
-            repeat(3, minmax(0, 1fr));
-          gap: 10px;
-          margin-bottom: 18px;
-        }
-
-        .dashboard-reminder-summary-box {
-          padding: 13px;
-        }
-
-        .dashboard-reminder-summary-value {
-          margin: 0;
-          color: #2a2119;
-          font-size: 20px;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-alert {
-          display: flex;
-          gap: 10px;
-          padding: 13px 14px;
-          margin-bottom: 14px;
-          border-radius: 12px;
-          font-weight: 700;
-          line-height: 1.5;
-        }
-
-        .dashboard-reminder-alert.overdue {
-          background: #f8dedc;
-          color: #b3261e;
-          border: 1px solid #eec0bd;
-        }
-
-        .dashboard-reminder-alert.due-soon {
-          background: #faf0d9;
-          color: #8a6d1f;
-          border: 1px solid #e8dcab;
-        }
-
-        .dashboard-reminder-form {
-          display: grid;
-          gap: 12px;
-          margin-bottom: 22px;
-        }
-
-        .dashboard-reminder-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
-
-        .dashboard-reminder-field {
-          display: grid;
-          gap: 6px;
-        }
-
-        .dashboard-reminder-field label {
-          color: #6e6153;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-field input,
-        .dashboard-reminder-field select,
-        .dashboard-reminder-field textarea {
-          width: 100%;
-          box-sizing: border-box;
-          border: 1px solid #e6d9bf;
-          border-radius: 10px;
-          background: #ffffff;
-          color: #2a2119;
-          padding: 11px 12px;
-          font: inherit;
-        }
-
-        .dashboard-reminder-field textarea {
-          min-height: 74px;
-          resize: vertical;
-        }
-
-        .dashboard-reminder-submit,
-        .dashboard-error-actions button {
-          border: none;
-          border-radius: 10px;
-          background: #bd5b34;
-          color: #ffffff;
-          padding: 12px 16px;
-          cursor: pointer;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-item {
-          display: grid;
-          grid-template-columns:
-            auto
-            minmax(0, 1fr)
-            auto;
-          gap: 12px;
-          align-items: start;
-          padding: 14px;
-          border-radius: 12px;
-          background: #f5eeda;
-        }
-
-        .dashboard-reminder-actions {
-          display: flex;
-          gap: 7px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-        }
-
-        .dashboard-reminder-action {
-          border: 1px solid #d8c7a3;
-          border-radius: 9px;
-          background: transparent;
-          color: #9a4728;
-          padding: 8px 10px;
-          cursor: pointer;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-action.complete {
-          border-color: #bd5b34;
-          background: #bd5b34;
-          color: #ffffff;
-        }
-
-        .dashboard-reminder-status {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          margin-top: 6px;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-status.overdue {
-          color: #b3261e;
-        }
-
-        .dashboard-reminder-status.due-soon {
-          color: #8a6d1f;
-        }
-
-        .dashboard-reminder-status.scheduled,
-        .dashboard-reminder-status.completed {
-          color: #bd5b34;
-        }
-
-        .dashboard-reminder-completed {
-          opacity: .65;
-        }
-
-        .dashboard-reminder-error {
-          margin: 0 0 15px;
-          color: #b3261e;
-          font-weight: 700;
-          line-height: 1.5;
-        }
-
-        /*
-         * Quick actions
-         */
-
-        .dashboard-actions {
-          display: grid;
-          gap: 12px;
-        }
-
-        .dashboard-action-button {
-          width: 100%;
-          min-height: 52px;
-          border-radius: 12px;
-          padding: 14px 18px;
-          cursor: pointer;
-          font-weight: 700;
-          text-align: left;
-        }
-
-        .dashboard-primary-action {
-          border: none;
-          background: #bd5b34;
-          color: #ffffff;
-        }
-
-        .dashboard-secondary-action {
-          border: 1px solid #d8c7a3;
-          background: transparent;
-          color: #9a4728;
-        }
-
-        /*
-         * Loading and error
-         */
-
-        .memory-graph-loading {
-          color: #bd5b34;
-          font-weight: 700;
-        }
-
-        .memory-graph-error {
-          margin: 0;
-          color: #b3261e;
-          font-weight: 700;
-          line-height: 1.5;
-        }
-
-        .dashboard-centered-message {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #bd5b34;
-          font-size: 18px;
-          font-weight: 700;
-        }
-
-        .dashboard-error-card {
-          max-width: 700px;
-          margin: 100px auto;
-          padding: 30px;
-          border: 1px solid #e6d9bf;
-          border-radius: 20px;
-          background: #fffcf6;
-          text-align: center;
-        }
-
-        .dashboard-error-card p {
-          color: #b3261e;
-          line-height: 1.6;
-        }
-
-        .dashboard-error-actions {
-          display: flex;
-          justify-content: center;
-          gap: 10px;
-        }
-
-        .dashboard-error-actions .secondary {
-          border: 1px solid #d8c7a3;
-          background: transparent;
-          color: #9a4728;
-        }
-
-        /*
-         * Responsive
-         */
-
-        @media (max-width: 900px) {
-          .dashboard-page {
-            padding: 90px 5% 40px;
-          }
-
-          .dashboard-grid {
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-          }
-
-          .dashboard-main-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .memory-graph-board {
-            grid-template-columns: 1fr;
-          }
-
-          .memory-graph-visual-header {
-            flex-direction: column;
-          }
-
-          .memory-graph-legend {
-            justify-content: flex-start;
-          }
-        }
-
-        @media (max-width: 600px) {
-          .dashboard-page {
-            padding: 70px 16px 35px;
-          }
-
-          .dashboard-header {
-            flex-direction: column;
-            gap: 18px;
-          }
-
-          .dashboard-title {
-            font-size: 34px;
-          }
-
-          .dashboard-subtitle {
-            font-size: 16px;
-          }
-
-          .dashboard-logout {
-            width: 100%;
-          }
-
-          .dashboard-grid {
-            grid-template-columns:
-              1fr 1fr;
-            gap: 12px;
-          }
-
-          .dashboard-stat {
-            padding: 18px;
-          }
-
-          .dashboard-stat-value {
-            font-size: 22px;
-          }
-
-          .dashboard-patient-row {
-            grid-template-columns: 1fr;
-          }
-
-          .dashboard-panel {
-            padding: 20px;
-            border-radius: 18px;
-          }
-
-          .dashboard-session-row {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .dashboard-reminder-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .dashboard-reminder-item {
-            grid-template-columns:
-              auto
-              minmax(0, 1fr);
-          }
-
-          .dashboard-reminder-actions {
-            grid-column: 1 / -1;
-            justify-content: flex-start;
-          }
-
-          .dashboard-reminder-summary {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .memory-graph-stats {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .memory-graph-link {
-            grid-template-columns:
-              auto
-              minmax(0, 1fr);
-          }
-
-          .memory-graph-connector {
-            grid-column: 2;
-            text-align: left;
-          }
-
-          .memory-graph-fact-node {
-            grid-column: 2;
-            width: 100%;
-            box-sizing: border-box;
-          }
-
-          .memory-graph-branch {
-            grid-row: span 2;
-          }
-
-          .dashboard-error-actions {
-            flex-direction: column;
-          }
-        }
-
-        @media (max-width: 390px) {
-          .dashboard-page {
-            padding-left: 12px;
-            padding-right: 12px;
-          }
-
-          .dashboard-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .dashboard-stat {
-            padding: 17px;
-          }
-
-          .dashboard-title {
-            font-size: 32px;
-          }
-
-          .memory-graph-stats {
-            grid-template-columns: 1fr;
-          }
-        }
-      `;
+const REMINDER_STATUS_BADGE_VARIANT = {
+  overdue: "destructive",
+  "due-soon": "warning",
+  scheduled: "muted",
+  completed: "success",
+};
+
+const selectClassName =
+  "flex h-[52px] w-full rounded-xl border border-input bg-card px-4 py-3 text-base text-foreground outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50";
 
 function Dashboard({
   onOpenMemoryVault,
@@ -1339,26 +483,26 @@ function Dashboard({
 
   const getNodeIcon = (type) => {
     const icons = {
-      memory: "🧠",
-      person: "👤",
-      family_role: "👨‍👩‍👧",
-      place: "📍",
-      event: "🎉",
-      activity: "☕",
+      memory: Brain,
+      person: User,
+      family_role: Users,
+      place: MapPin,
+      event: PartyPopper,
+      activity: Coffee,
     };
 
-    return icons[type] || "•";
+    return icons[type] || Circle;
   };
 
   const getReminderIcon = (type) => {
     const icons = {
-      medicine: "💊",
-      hydration: "💧",
-      activity: "🚶",
-      appointment: "🩺",
+      medicine: Pill,
+      hydration: Droplet,
+      activity: Footprints,
+      appointment: Stethoscope,
     };
 
-    return icons[type] || "🔔";
+    return icons[type] || Bell;
   };
 
   const getReminderLabel = (type) => {
@@ -1391,7 +535,7 @@ function Dashboard({
       return {
         key: "completed",
         label: "Completed",
-        icon: "✅",
+        icon: CheckCircle2,
       };
     }
 
@@ -1399,7 +543,7 @@ function Dashboard({
       return {
         key: "scheduled",
         label: "Scheduled",
-        icon: "🕐",
+        icon: Clock,
       };
     }
 
@@ -1413,7 +557,7 @@ function Dashboard({
       return {
         key: "overdue",
         label: "Overdue",
-        icon: "🔴",
+        icon: Circle,
       };
     }
 
@@ -1424,14 +568,14 @@ function Dashboard({
       return {
         key: "due-soon",
         label: "Due soon",
-        icon: "🟠",
+        icon: Circle,
       };
     }
 
     return {
       key: "scheduled",
       label: "Scheduled",
-      icon: "🟢",
+      icon: Circle,
     };
   };
 
@@ -1475,1076 +619,811 @@ function Dashboard({
 
   if (loading) {
     return (
-      <>
-        <style>{DASHBOARD_STYLES}</style>
-        <div className="dashboard-page dashboard-centered-message">
-          Loading caregiver dashboard...
-        </div>
-      </>
+      <div className="flex min-h-screen items-center justify-center bg-background px-6 py-24 text-lg font-bold text-primary">
+        Loading caregiver dashboard...
+      </div>
     );
   }
 
   if (error) {
     return (
-      <>
-        <style>{DASHBOARD_STYLES}</style>
-        <div className="dashboard-page">
-          <div className="dashboard-error-card">
-            <h2>Something went wrong</h2>
+      <div className="min-h-screen bg-background px-4 py-24 sm:px-[7%]">
+        <Card className="mx-auto max-w-[700px] p-8 text-center">
+          <h2 className="mb-3 text-2xl text-foreground">
+            Something went wrong
+          </h2>
 
-            <p>{error}</p>
+          <p className="mb-6 leading-relaxed font-medium text-destructive">
+            {error}
+          </p>
 
-            <div className="dashboard-error-actions">
-              <button
-                onClick={loadDashboard}
-              >
-                Try Again
-              </button>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button variant="primary" onClick={loadDashboard}>
+              Try Again
+            </Button>
 
-              <button
-                className="secondary"
-                onClick={onLogout}
-              >
-                Log Out
-              </button>
-            </div>
+            <Button variant="outline" onClick={onLogout}>
+              Log Out
+            </Button>
           </div>
-        </div>
-      </>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <>
-      <style>{DASHBOARD_STYLES}</style>
+    <div className="min-h-screen bg-background px-4 pt-24 pb-12 sm:px-[5%] lg:px-[7%]">
+      <div className="mx-auto max-w-[1100px]">
+        <GlassSurface
+          as="header"
+          type="rounded"
+          radius={28}
+          tintOpacity={0.16}
+          className="mb-8 flex flex-col gap-5 p-6 sm:flex-row sm:items-start sm:justify-between sm:p-8"
+          fallbackClassName="bg-card/60"
+        >
+          <div className="min-w-0">
+            <p className="mb-2 text-sm font-bold tracking-wide text-primary">
+              SMRITI AI · CAREGIVER DASHBOARD
+            </p>
 
-      <div className="dashboard-page">
-        <div className="dashboard-container">
-          <div className="dashboard-header">
-            <div className="dashboard-header-content">
-              <p className="dashboard-label">
-                SMRITI AI · CAREGIVER DASHBOARD
-              </p>
+            <h1 className="mb-2 text-3xl leading-tight text-foreground sm:text-4xl lg:text-[44px]">
+              Care that remembers, {patient.full_name || "your loved one"}.
+            </h1>
 
-              <h1 className="dashboard-title">
-                Care that remembers, {patient.full_name || "your loved one"}.
-              </h1>
-
-              <p className="dashboard-subtitle">
-                A care experience shaped around {patient.full_name || "this patient"}'s memories,
-                preferences, and everyday routines.
-              </p>
-            </div>
-
-            <button
-              className="dashboard-logout"
-              onClick={onLogout}
-            >
-              Log Out
-            </button>
+            <p className="max-w-[680px] text-base leading-relaxed text-muted-foreground sm:text-lg">
+              A care experience shaped around {patient.full_name || "this patient"}'s memories,
+              preferences, and everyday routines.
+            </p>
           </div>
 
-          <div className="dashboard-grid">
-            <div className="dashboard-stat">
-              <p className="dashboard-stat-label">
-                Patient
-              </p>
+          <Button
+            variant="outline"
+            onClick={onLogout}
+            className="w-full shrink-0 sm:w-auto"
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            Log Out
+          </Button>
+        </GlassSurface>
 
-              <p className="dashboard-stat-value">
-                {patient.full_name ||
-                  "Test Patient"}
-              </p>
-            </div>
+        <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <Card className="min-w-0 p-5">
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+              Patient
+            </p>
 
-            <div className="dashboard-stat">
-              <p className="dashboard-stat-label">
-                Language
-              </p>
+            <p className="break-words text-2xl font-bold text-foreground">
+              {patient.full_name || "Test Patient"}
+            </p>
+          </Card>
 
-              <p className="dashboard-stat-value">
-                {patient.language ||
-                  "English"}
-              </p>
-            </div>
+          <Card className="min-w-0 p-5">
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+              Language
+            </p>
 
-            <div className="dashboard-stat">
-              <p className="dashboard-stat-label">
-                Accuracy
-              </p>
+            <p className="break-words text-2xl font-bold text-foreground">
+              {patient.language || "English"}
+            </p>
+          </Card>
 
-              <p className="dashboard-stat-value">
-                {accuracy.toFixed(
-                  accuracy % 1 ? 1 : 0
-                )}
-                %
-              </p>
-            </div>
+          <Card className="min-w-0 p-5">
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+              Accuracy
+            </p>
 
-            <div className="dashboard-stat">
-              <p className="dashboard-stat-label">
-                Attempts
-              </p>
+            <p className="break-words text-2xl font-bold text-foreground">
+              {accuracy.toFixed(accuracy % 1 ? 1 : 0)}%
+            </p>
+          </Card>
 
-              <p className="dashboard-stat-value">
-                {totalAttempts}
-              </p>
-            </div>
-          </div>
+          <Card className="min-w-0 p-5">
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+              Attempts
+            </p>
 
-          <div className="dashboard-main-grid">
-            <div>
-              <div className="dashboard-panel">
-                <h2 className="dashboard-panel-title">
-                  Patient Overview
-                </h2>
+            <p className="break-words text-2xl font-bold text-foreground">
+              {totalAttempts}
+            </p>
+          </Card>
+        </div>
 
-                <div className="dashboard-patient-row">
-                  <div className="dashboard-info-box">
-                    <p className="dashboard-info-label">
-                      Patient Name
-                    </p>
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="flex min-w-0 flex-col gap-6">
+            <Card className="min-w-0 p-6 sm:p-7">
+              <h2 className="mb-5 text-xl text-foreground sm:text-2xl">
+                Patient Overview
+              </h2>
 
-                    <p className="dashboard-info-value">
-                      {patient.full_name ||
-                        "Test Patient"}
-                    </p>
-                  </div>
+              <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+                <div className="min-w-0 rounded-lg bg-muted p-4">
+                  <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+                    Patient Name
+                  </p>
 
-                  <div className="dashboard-info-box">
-                    <p className="dashboard-info-label">
-                      Age
-                    </p>
-
-                    <p className="dashboard-info-value">
-                      {patient.age
-                        ? `${patient.age} years`
-                        : "Not available"}
-                    </p>
-                  </div>
-
-                  <div className="dashboard-info-box">
-                    <p className="dashboard-info-label">
-                      Language
-                    </p>
-
-                    <p className="dashboard-info-value">
-                      {patient.language ||
-                        "English"}
-                    </p>
-                  </div>
-
-                  <div className="dashboard-info-box">
-                    <p className="dashboard-info-label">
-                      Caregiver
-                    </p>
-
-                    <p className="dashboard-info-value">
-                      {patient.caregiver_name ||
-                        "Test Caregiver"}
-                    </p>
-                  </div>
+                  <p className="break-words text-lg font-bold text-foreground">
+                    {patient.full_name || "Test Patient"}
+                  </p>
                 </div>
 
-                <div className="dashboard-activity">
-                  <h3 className="dashboard-subheading">
-                    Recent Activity
-                  </h3>
+                <div className="min-w-0 rounded-lg bg-muted p-4">
+                  <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+                    Age
+                  </p>
 
-                  {recentActivity.length === 0 ? (
-                    <p className="dashboard-empty">
-                      No recent activity yet.
-                    </p>
-                  ) : (
-                    <div className="dashboard-activity-list">
-                      {recentActivity
-                        .slice(0, 5)
-                        .map(
-                          (
-                            activity,
-                            index
-                          ) => (
-                            <div
-                              className="dashboard-activity-item"
-                              key={
-                                activity.id ??
-                                activity.attempt_id ??
-                                index
-                              }
-                            >
-                              <div className="dashboard-activity-icon">
-                                {activity.correct
-                                  ? "✓"
-                                  : "🧠"}
-                              </div>
+                  <p className="break-words text-lg font-bold text-foreground">
+                    {patient.age ? `${patient.age} years` : "Not available"}
+                  </p>
+                </div>
 
-                              <div className="dashboard-activity-content">
-                                <p className="dashboard-activity-title">
-                                  {activity.game_type ||
-                                    activity.type ||
-                                    "Therapy activity"}
-                                </p>
+                <div className="min-w-0 rounded-lg bg-muted p-4">
+                  <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+                    Language
+                  </p>
 
-                                <p className="dashboard-activity-text">
-                                  {activity.correct
-                                    ? "Correct answer"
-                                    : activity.score !==
-                                      undefined
-                                    ? `Score: ${activity.score}`
-                                    : "Activity completed"}
-                                </p>
-                              </div>
-                            </div>
-                          )
-                        )}
-                    </div>
-                  )}
+                  <p className="break-words text-lg font-bold text-foreground">
+                    {patient.language || "English"}
+                  </p>
+                </div>
+
+                <div className="min-w-0 rounded-lg bg-muted p-4">
+                  <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+                    Caregiver
+                  </p>
+
+                  <p className="break-words text-lg font-bold text-foreground">
+                    {patient.caregiver_name || "Test Caregiver"}
+                  </p>
                 </div>
               </div>
 
-              <div className="dashboard-panel">
-                <h2 className="dashboard-panel-title">
-                  Memory Connections
-                </h2>
+              <div className="mt-6">
+                <h3 className="mb-3.5 text-lg text-foreground">
+                  Recent Activity
+                </h3>
 
-                {favoriteAnimal && (
-                  <p className="memory-graph-intro">
-                    🐘 A familiar favorite: {favoriteAnimal}
-                  </p>
-                )}
-
-                <p className="memory-graph-intro">
-                  Smriti AI connects memories with
-                  the people, places, events, family
-                  roles, and activities that make them
-                  meaningful.
-                </p>
-
-                {graphLoading ? (
-                  <p className="memory-graph-loading">
-                    Building memory connections...
-                  </p>
-                ) : graphError ? (
-                  <p className="memory-graph-error">
-                    {graphError}
+                {recentActivity.length === 0 ? (
+                  <p className="text-sm leading-relaxed text-faint">
+                    No recent activity yet.
                   </p>
                 ) : (
-                  <>
-                    <div className="memory-graph-stats">
-                      <div className="memory-graph-stat">
-                        <p className="memory-graph-stat-label">
-                          Memories
-                        </p>
-
-                        <p className="memory-graph-stat-value">
-                          {graphStats.memory_count ??
-                            0}
-                        </p>
-                      </div>
-
-                      <div className="memory-graph-stat">
-                        <p className="memory-graph-stat-label">
-                          Places
-                        </p>
-
-                        <p className="memory-graph-stat-value">
-                          {graphStats.place_count ??
-                            0}
-                        </p>
-                      </div>
-
-                      <div className="memory-graph-stat">
-                        <p className="memory-graph-stat-label">
-                          Events
-                        </p>
-
-                        <p className="memory-graph-stat-value">
-                          {graphStats.event_count ??
-                            0}
-                        </p>
-                      </div>
-
-                      <div className="memory-graph-stat">
-                        <p className="memory-graph-stat-label">
-                          Activities
-                        </p>
-
-                        <p className="memory-graph-stat-value">
-                          {graphStats.activity_count ??
-                            0}
-                        </p>
-                      </div>
-
-                      <div className="memory-graph-stat">
-                        <p className="memory-graph-stat-label">
-                          Family Roles
-                        </p>
-
-                        <p className="memory-graph-stat-value">
-                          {graphStats.family_role_count ??
-                            graphStats.relationship_count ??
-                            0}
-                        </p>
-                      </div>
-
-                      <div className="memory-graph-stat">
-                        <p className="memory-graph-stat-label">
-                          Connections
-                        </p>
-
-                        <p className="memory-graph-stat-value">
-                          {graphStats.connection_count ??
-                            0}
-                        </p>
-                      </div>
-                    </div>
-
-                    {graphConnections.length ===
-                    0 ? (
-                      <p className="dashboard-empty">
-                        Add more detailed memories
-                        to build stronger
-                        connections.
-                      </p>
-                    ) : (
-                      <>
-                        <div className="memory-graph-visual">
-                          <div className="memory-graph-visual-header">
-                            <div>
-                              <p className="memory-graph-visual-title">
-                                Living memory map
-                              </p>
-
-                              <p className="memory-graph-visual-subtitle">
-                                See how every memory
-                                branches into meaningful
-                                facts.
-                              </p>
-                            </div>
-
-                            <div className="memory-graph-legend">
-                              <span className="memory-graph-legend-pill">
-                                🧠 Memory
-                              </span>
-
-                              <span className="memory-graph-legend-pill">
-                                📍 Place
-                              </span>
-
-                              <span className="memory-graph-legend-pill">
-                                👨‍👩‍👧 Family
-                              </span>
-
-                              <span className="memory-graph-legend-pill">
-                                🎉 Event
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="memory-graph-board">
-                            {memoryMapData.map(
-                              ({
-                                memory,
-                                links,
-                              }) => (
-                                <div
-                                  className="memory-graph-cluster"
-                                  key={memory.id}
-                                >
-                                  <div className="memory-graph-memory-node">
-                                    <span>
-                                      🧠
-                                    </span>
-
-                                    <span>
-                                      {memory.value}
-                                    </span>
-                                  </div>
-
-                                  {links.length ===
-                                  0 ? (
-                                    <p
-                                      className="dashboard-empty"
-                                      style={{
-                                        marginTop:
-                                          "10px",
-                                      }}
-                                    >
-                                      No linked facts
-                                      yet.
-                                    </p>
-                                  ) : (
-                                    <div className="memory-graph-links">
-                                      {links.map(
-                                        (
-                                          connection,
-                                          index
-                                        ) => (
-                                          <div
-                                            className="memory-graph-link"
-                                            key={`${connection.target.id}-${index}`}
-                                          >
-                                            <span className="memory-graph-branch">
-                                              ↳
-                                            </span>
-
-                                            <span className="memory-graph-connector">
-                                              {formatRelationship(
-                                                connection.type
-                                              )}
-                                            </span>
-
-                                            <span className="memory-graph-fact-node">
-                                              <span>
-                                                {getNodeIcon(
-                                                  connection
-                                                    .target
-                                                    .type
-                                                )}
-                                              </span>
-
-                                              <span>
-                                                {
-                                                  connection
-                                                    .target
-                                                    .value
-                                                }
-                                              </span>
-                                            </span>
-                                          </div>
-                                        )
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              )
-                            )}
-                          </div>
+                  <div className="grid gap-2.5">
+                    {recentActivity.slice(0, 5).map((activity, index) => (
+                      <div
+                        className="flex min-w-0 items-start gap-3 rounded-xl bg-muted p-3.5"
+                        key={activity.id ?? activity.attempt_id ?? index}
+                      >
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                          {activity.correct ? (
+                            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                          ) : (
+                            <Brain className="h-4 w-4" aria-hidden="true" />
+                          )}
                         </div>
 
-                        <div className="memory-graph-connections">
-                          <p className="memory-graph-connections-title">
-                            Connection details
+                        <div className="min-w-0">
+                          <p className="mb-1 break-words font-bold text-foreground">
+                            {activity.game_type || activity.type || "Therapy activity"}
                           </p>
 
-                          {graphConnections
-                            .slice(0, 8)
-                            .map(
-                              (
-                                connection,
-                                index
-                              ) => (
-                                <div
-                                  className="memory-graph-connection"
-                                  key={`${connection.source.id}-${connection.target.id}-${index}`}
-                                >
-                                  <div className="memory-graph-node">
-                                    <span>
-                                      {getNodeIcon(
-                                        connection
-                                          .source
-                                          .type
-                                      )}
-                                    </span>
+                          <p className="break-words text-sm leading-relaxed text-faint">
+                            {activity.correct
+                              ? "Correct answer"
+                              : activity.score !== undefined
+                              ? `Score: ${activity.score}`
+                              : "Activity completed"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </Card>
 
-                                    <span>
-                                      {
-                                        connection
-                                          .source
-                                          .value
-                                      }
-                                    </span>
-                                  </div>
+            <Card className="min-w-0 p-6 sm:p-7">
+              <h2 className="mb-5 text-xl text-foreground sm:text-2xl">
+                Memory Connections
+              </h2>
 
-                                  <span className="memory-graph-arrow">
-                                    {formatRelationship(
-                                      connection.type
-                                    )}
-                                    {" →"}
-                                  </span>
+              <div className="mb-5 space-y-2 leading-relaxed text-muted-foreground">
+                {favoriteAnimal && (
+                  <p className="flex items-center gap-2">
+                    <PawPrint className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                    <span>A familiar favorite: {favoriteAnimal}</span>
+                  </p>
+                )}
 
-                                  <div className="memory-graph-node">
-                                    <span>
-                                      {getNodeIcon(
-                                        connection
-                                          .target
-                                          .type
-                                      )}
-                                    </span>
+                <p>
+                  Smriti AI connects memories with the people, places, events, family
+                  roles, and activities that make them meaningful.
+                </p>
+              </div>
 
-                                    <span>
-                                      {
-                                        connection
-                                          .target
-                                          .value
-                                      }
-                                    </span>
-                                  </div>
+              {graphLoading ? (
+                <p className="font-bold text-primary">
+                  Building memory connections...
+                </p>
+              ) : graphError ? (
+                <p className="font-bold leading-relaxed text-destructive">
+                  {graphError}
+                </p>
+              ) : (
+                <>
+                  <div className="mb-5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    <div className="min-w-0 rounded-lg bg-muted p-3.5">
+                      <p className="mb-1 text-xs font-bold uppercase tracking-wide text-faint">
+                        Memories
+                      </p>
+
+                      <p className="text-xl font-bold text-foreground">
+                        {graphStats.memory_count ?? 0}
+                      </p>
+                    </div>
+
+                    <div className="min-w-0 rounded-lg bg-muted p-3.5">
+                      <p className="mb-1 text-xs font-bold uppercase tracking-wide text-faint">
+                        Places
+                      </p>
+
+                      <p className="text-xl font-bold text-foreground">
+                        {graphStats.place_count ?? 0}
+                      </p>
+                    </div>
+
+                    <div className="min-w-0 rounded-lg bg-muted p-3.5">
+                      <p className="mb-1 text-xs font-bold uppercase tracking-wide text-faint">
+                        Events
+                      </p>
+
+                      <p className="text-xl font-bold text-foreground">
+                        {graphStats.event_count ?? 0}
+                      </p>
+                    </div>
+
+                    <div className="min-w-0 rounded-lg bg-muted p-3.5">
+                      <p className="mb-1 text-xs font-bold uppercase tracking-wide text-faint">
+                        Activities
+                      </p>
+
+                      <p className="text-xl font-bold text-foreground">
+                        {graphStats.activity_count ?? 0}
+                      </p>
+                    </div>
+
+                    <div className="min-w-0 rounded-lg bg-muted p-3.5">
+                      <p className="mb-1 text-xs font-bold uppercase tracking-wide text-faint">
+                        Family Roles
+                      </p>
+
+                      <p className="text-xl font-bold text-foreground">
+                        {graphStats.family_role_count ?? graphStats.relationship_count ?? 0}
+                      </p>
+                    </div>
+
+                    <div className="min-w-0 rounded-lg bg-muted p-3.5">
+                      <p className="mb-1 text-xs font-bold uppercase tracking-wide text-faint">
+                        Connections
+                      </p>
+
+                      <p className="text-xl font-bold text-foreground">
+                        {graphStats.connection_count ?? 0}
+                      </p>
+                    </div>
+                  </div>
+
+                  {graphConnections.length === 0 ? (
+                    <p className="text-sm leading-relaxed text-faint">
+                      Add more detailed memories to build stronger connections.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="rounded-xl border border-border bg-gradient-to-br from-card to-muted p-4 sm:p-5">
+                        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="text-base font-bold text-foreground">
+                              Living memory map
+                            </p>
+
+                            <p className="mt-1 text-sm leading-relaxed text-faint">
+                              See how every memory branches into meaningful facts.
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5 sm:justify-end">
+                            <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-2.5 py-1.5 text-xs font-bold text-muted-foreground">
+                              <Brain className="h-3 w-3" aria-hidden="true" /> Memory
+                            </span>
+
+                            <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-2.5 py-1.5 text-xs font-bold text-muted-foreground">
+                              <MapPin className="h-3 w-3" aria-hidden="true" /> Place
+                            </span>
+
+                            <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-2.5 py-1.5 text-xs font-bold text-muted-foreground">
+                              <Users className="h-3 w-3" aria-hidden="true" /> Family
+                            </span>
+
+                            <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-card px-2.5 py-1.5 text-xs font-bold text-muted-foreground">
+                              <PartyPopper className="h-3 w-3" aria-hidden="true" /> Event
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                          {memoryMapData.map(({ memory, links }) => (
+                            <div
+                              className="min-w-0 rounded-xl border border-border bg-card/90 p-3.5"
+                              key={memory.id}
+                            >
+                              <div className="flex min-w-0 items-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-bold text-primary-foreground shadow-brand-sm">
+                                <Brain className="h-4 w-4 shrink-0" aria-hidden="true" />
+
+                                <span className="min-w-0 break-words">
+                                  {memory.value}
+                                </span>
+                              </div>
+
+                              {links.length === 0 ? (
+                                <p className="mt-2.5 text-sm leading-relaxed text-faint">
+                                  No linked facts yet.
+                                </p>
+                              ) : (
+                                <div className="mt-2.5 grid gap-2">
+                                  {links.map((connection, index) => (
+                                    <div
+                                      className="grid grid-cols-[auto_minmax(72px,0.55fr)_minmax(0,1fr)] items-center gap-2"
+                                      key={`${connection.target.id}-${index}`}
+                                    >
+                                      <span className="text-lg leading-none text-border-strong">
+                                        ↳
+                                      </span>
+
+                                      <span className="text-center text-[10px] font-bold text-faint">
+                                        {formatRelationship(connection.type)}
+                                      </span>
+
+                                      <span className="inline-flex min-w-0 items-center gap-1.5 rounded-md bg-muted px-2.5 py-1.5 text-xs font-bold text-muted-foreground">
+                                        {(() => {
+                                          const LinkIcon = getNodeIcon(connection.target.type);
+                                          return <LinkIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+                                        })()}
+
+                                        <span className="min-w-0 break-words">
+                                          {connection.target.value}
+                                        </span>
+                                      </span>
+                                    </div>
+                                  ))}
                                 </div>
-                              )
-                            )}
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <div className="dashboard-panel">
-                <h2 className="dashboard-panel-title">
-                  Progress
-                </h2>
-
-                <div className="dashboard-session">
-                  <div className="dashboard-session-row">
-                    <div>
-                      <p className="dashboard-session-label">
-                        Correct Attempts
-                      </p>
-
-                      <p className="dashboard-session-value">
-                        {correctAttempts} /{" "}
-                        {totalAttempts}
-                      </p>
-                    </div>
-
-                    <div className="dashboard-session-progress-value">
-                      {accuracy.toFixed(
-                        accuracy % 1 ? 1 : 0
-                      )}
-                      %
-                    </div>
-                  </div>
-
-                  <div className="dashboard-progress-bar">
-                    <div
-                      className="dashboard-progress-fill"
-                      style={{
-                        width: `${Math.min(
-                          Math.max(
-                            accuracy,
-                            0
-                          ),
-                          100
-                        )}%`,
-                      }}
-                    />
-                  </div>
-
-                  <p
-                    className="dashboard-activity-text"
-                    style={{
-                      marginTop: "12px",
-                    }}
-                  >
-                    {totalGamesCompleted} therapy
-                    games completed overall.
-                  </p>
-                </div>
-              </div>
-
-              <div className="dashboard-panel">
-                <h2 className="dashboard-panel-title">
-                  Latest Therapy Session
-                </h2>
-
-                {session ? (
-                  <div className="dashboard-session">
-                    <p className="dashboard-session-label">
-                      Session
-                    </p>
-
-                    <p className="dashboard-session-value">
-                      {sessionId
-                        ? `Therapy Session #${sessionId}`
-                        : "Recent Therapy Session"}
-                    </p>
-
-                    <p
-                      className="dashboard-activity-text"
-                      style={{
-                        marginTop: "10px",
-                      }}
-                    >
-                      {session.completed_games ??
-                        0}{" "}
-                      of{" "}
-                      {session.total_games ??
-                        0}{" "}
-                      games completed
-                    </p>
-
-                    <div className="dashboard-progress-bar">
-                      <div
-                        className="dashboard-progress-fill"
-                        style={{
-                          width: `${Math.min(
-                            Math.max(
-                              sessionProgress,
-                              0
-                            ),
-                            100
-                          )}%`,
-                        }}
-                      />
-                    </div>
-
-                    <p
-                      className="dashboard-activity-text"
-                      style={{
-                        marginTop: "10px",
-                        color: "#bd5b34",
-                        fontWeight: "700",
-                        textTransform:
-                          "capitalize",
-                      }}
-                    >
-                      {session.status ||
-                        "active"}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="dashboard-empty">
-                    No therapy session recorded yet.
-                  </p>
-                )}
-              </div>
-
-              <div className="dashboard-panel">
-                <h2 className="dashboard-panel-title">
-                  Care Reminders
-                </h2>
-
-                <div className="dashboard-reminder-summary">
-                  <div className="dashboard-reminder-summary-box">
-                    <p className="dashboard-reminder-summary-label">
-                      Pending
-                    </p>
-
-                    <p className="dashboard-reminder-summary-value">
-                      {pendingReminders.length}
-                    </p>
-                  </div>
-
-                  <div className="dashboard-reminder-summary-box">
-                    <p className="dashboard-reminder-summary-label">
-                      Completed
-                    </p>
-
-                    <p className="dashboard-reminder-summary-value">
-                      {completedReminders.length}
-                    </p>
-                  </div>
-
-                  <div className="dashboard-reminder-summary-box">
-                    <p className="dashboard-reminder-summary-label">
-                      Total
-                    </p>
-
-                    <p className="dashboard-reminder-summary-value">
-                      {reminders.length}
-                    </p>
-                  </div>
-                </div>
-
-                {!remindersLoading &&
-                  overdueReminders.length >
-                    0 && (
-                    <div className="dashboard-reminder-alert overdue">
-                      <span>
-                        🔴
-                      </span>
-
-                      <span>
-                        {overdueReminders.length ===
-                        1
-                          ? "1 reminder is overdue."
-                          : `${overdueReminders.length} reminders are overdue.`}{" "}
-                        Please review the
-                        caregiver schedule.
-                      </span>
-                    </div>
-                  )}
-
-                {!remindersLoading &&
-                  overdueReminders.length ===
-                    0 &&
-                  dueSoonReminders.length >
-                    0 && (
-                    <div className="dashboard-reminder-alert due-soon">
-                      <span>
-                        🟠
-                      </span>
-
-                      <span>
-                        {dueSoonReminders.length ===
-                        1
-                          ? "1 reminder is due within the next hour."
-                          : `${dueSoonReminders.length} reminders are due within the next hour.`}
-                      </span>
-                    </div>
-                  )}
-
-                {remindersLoading ? (
-                  <p className="memory-graph-loading">
-                    Loading care reminders...
-                  </p>
-                ) : (
-                  <>
-                    {reminderError && (
-                      <p className="dashboard-reminder-error">
-                        {reminderError}
-                      </p>
-                    )}
-
-                    <form
-                      className="dashboard-reminder-form"
-                      onSubmit={createReminder}
-                    >
-                      <div className="dashboard-reminder-grid">
-                        <div className="dashboard-reminder-field">
-                          <label htmlFor="reminder-title">
-                            Reminder
-                          </label>
-
-                          <input
-                            id="reminder-title"
-                            type="text"
-                            placeholder="e.g. Morning medicine"
-                            value={
-                              newReminder.title
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              setNewReminder(
-                                (current) => ({
-                                  ...current,
-                                  title:
-                                    event.target
-                                      .value,
-                                })
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div className="dashboard-reminder-field">
-                          <label htmlFor="reminder-type">
-                            Type
-                          </label>
-
-                          <select
-                            id="reminder-type"
-                            value={
-                              newReminder.reminder_type
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              setNewReminder(
-                                (current) => ({
-                                  ...current,
-                                  reminder_type:
-                                    event.target
-                                      .value,
-                                })
-                              )
-                            }
-                          >
-                            <option value="medicine">
-                              💊 Medicine
-                            </option>
-
-                            <option value="hydration">
-                              💧 Hydration
-                            </option>
-
-                            <option value="activity">
-                              🚶 Daily Activity
-                            </option>
-
-                            <option value="appointment">
-                              🩺 Appointment
-                            </option>
-                          </select>
-                        </div>
-
-                        <div className="dashboard-reminder-field">
-                          <label htmlFor="reminder-time">
-                            Date &amp; Time
-                          </label>
-
-                          <input
-                            id="reminder-time"
-                            type="datetime-local"
-                            value={
-                              newReminder.scheduled_at
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              setNewReminder(
-                                (current) => ({
-                                  ...current,
-                                  scheduled_at:
-                                    event.target
-                                      .value,
-                                })
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div className="dashboard-reminder-field">
-                          <label htmlFor="reminder-repeat">
-                            Repeat
-                          </label>
-
-                          <select
-                            id="reminder-repeat"
-                            value={
-                              newReminder.repeat
-                            }
-                            onChange={(
-                              event
-                            ) =>
-                              setNewReminder(
-                                (current) => ({
-                                  ...current,
-                                  repeat:
-                                    event.target
-                                      .value,
-                                })
-                              )
-                            }
-                          >
-                            <option value="once">
-                              Once
-                            </option>
-
-                            <option value="daily">
-                              Daily
-                            </option>
-
-                            <option value="weekly">
-                              Weekly
-                            </option>
-                          </select>
+                              )}
+                            </div>
+                          ))}
                         </div>
                       </div>
 
-                      <div className="dashboard-reminder-field">
-                        <label htmlFor="reminder-description">
-                          Notes
-                        </label>
+                      <div className="mt-4 grid gap-2.5">
+                        <p className="font-bold text-foreground">
+                          Connection details
+                        </p>
 
-                        <textarea
-                          id="reminder-description"
-                          placeholder="Optional note for the caregiver"
-                          value={
-                            newReminder.description
-                          }
-                          onChange={(
-                            event
-                          ) =>
-                            setNewReminder(
-                              (current) => ({
-                                ...current,
-                                description:
-                                  event.target
-                                    .value,
-                              })
-                            )
+                        {graphConnections.slice(0, 8).map((connection, index) => (
+                          <div
+                            className="flex flex-wrap items-center gap-2.5 rounded-xl bg-muted p-3"
+                            key={`${connection.source.id}-${connection.target.id}-${index}`}
+                          >
+                            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-accent px-2.5 py-1.5 text-sm font-bold text-accent-foreground">
+                              {(() => {
+                                const SourceIcon = getNodeIcon(connection.source.type);
+                                return <SourceIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+                              })()}
+
+                              <span className="break-words">
+                                {connection.source.value}
+                              </span>
+                            </span>
+
+                            <span className="text-sm font-bold text-faint">
+                              {formatRelationship(connection.type)}
+                              {" →"}
+                            </span>
+
+                            <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-accent px-2.5 py-1.5 text-sm font-bold text-accent-foreground">
+                              {(() => {
+                                const TargetIcon = getNodeIcon(connection.target.type);
+                                return <TargetIcon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+                              })()}
+
+                              <span className="break-words">
+                                {connection.target.value}
+                              </span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </Card>
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-6">
+            <Card className="min-w-0 p-6 sm:p-7">
+              <h2 className="mb-5 text-xl text-foreground sm:text-2xl">
+                Progress
+              </h2>
+
+              <div className="rounded-lg bg-muted p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+                      Correct Attempts
+                    </p>
+
+                    <p className="text-lg font-bold text-foreground">
+                      {correctAttempts} / {totalAttempts}
+                    </p>
+                  </div>
+
+                  <div className="text-2xl font-bold text-primary">
+                    {accuracy.toFixed(accuracy % 1 ? 1 : 0)}%
+                  </div>
+                </div>
+
+                <Progress
+                  value={accuracy}
+                  trackClassName="mt-4"
+                />
+
+                <p className="mt-3 text-sm leading-relaxed text-faint">
+                  {totalGamesCompleted} therapy games completed overall.
+                </p>
+              </div>
+            </Card>
+
+            <Card className="min-w-0 p-6 sm:p-7">
+              <h2 className="mb-5 text-xl text-foreground sm:text-2xl">
+                Latest Therapy Session
+              </h2>
+
+              {session ? (
+                <div className="rounded-lg bg-muted p-4">
+                  <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-faint">
+                    Session
+                  </p>
+
+                  <p className="text-lg font-bold text-foreground">
+                    {sessionId ? `Therapy Session #${sessionId}` : "Recent Therapy Session"}
+                  </p>
+
+                  <p className="mt-2.5 text-sm leading-relaxed text-faint">
+                    {session.completed_games ?? 0} of {session.total_games ?? 0} games completed
+                  </p>
+
+                  <Progress
+                    value={sessionProgress}
+                    trackClassName="mt-2.5"
+                  />
+
+                  <p className="mt-2.5 text-sm font-bold capitalize text-primary">
+                    {session.status || "active"}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed text-faint">
+                  No therapy session recorded yet.
+                </p>
+              )}
+            </Card>
+
+            <Card className="min-w-0 p-6 sm:p-7">
+              <h2 className="mb-5 text-xl text-foreground sm:text-2xl">
+                Care Reminders
+              </h2>
+
+              <div className="mb-5 grid grid-cols-3 gap-2.5">
+                <div className="min-w-0 rounded-lg bg-muted p-3.5">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-wide text-faint">
+                    Pending
+                  </p>
+
+                  <p className="text-xl font-bold text-foreground">
+                    {pendingReminders.length}
+                  </p>
+                </div>
+
+                <div className="min-w-0 rounded-lg bg-muted p-3.5">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-wide text-faint">
+                    Completed
+                  </p>
+
+                  <p className="text-xl font-bold text-foreground">
+                    {completedReminders.length}
+                  </p>
+                </div>
+
+                <div className="min-w-0 rounded-lg bg-muted p-3.5">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-wide text-faint">
+                    Total
+                  </p>
+
+                  <p className="text-xl font-bold text-foreground">
+                    {reminders.length}
+                  </p>
+                </div>
+              </div>
+
+              {!remindersLoading && overdueReminders.length > 0 && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+
+                  <span>
+                    {overdueReminders.length === 1
+                      ? "1 reminder is overdue."
+                      : `${overdueReminders.length} reminders are overdue.`}{" "}
+                    Please review the caregiver schedule.
+                  </span>
+                </Alert>
+              )}
+
+              {!remindersLoading &&
+                overdueReminders.length === 0 &&
+                dueSoonReminders.length > 0 && (
+                  <Alert variant="warning" className="mb-4">
+                    <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+
+                    <span>
+                      {dueSoonReminders.length === 1
+                        ? "1 reminder is due within the next hour."
+                        : `${dueSoonReminders.length} reminders are due within the next hour.`}
+                    </span>
+                  </Alert>
+                )}
+
+              {remindersLoading ? (
+                <p className="font-bold text-primary">
+                  Loading care reminders...
+                </p>
+              ) : (
+                <>
+                  {reminderError && (
+                    <Alert variant="destructive" className="mb-4">
+                      <span>{reminderError}</span>
+                    </Alert>
+                  )}
+
+                  <form className="mb-6 grid gap-3" onSubmit={createReminder}>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div className="grid gap-1.5">
+                        <Label htmlFor="reminder-title">Reminder</Label>
+
+                        <Input
+                          id="reminder-title"
+                          type="text"
+                          placeholder="e.g. Morning medicine"
+                          value={newReminder.title}
+                          onChange={(event) =>
+                            setNewReminder((current) => ({
+                              ...current,
+                              title: event.target.value,
+                            }))
                           }
                         />
                       </div>
 
-                      <button
-                        className="dashboard-reminder-submit"
-                        type="submit"
-                      >
-                        + Add Reminder
-                      </button>
-                    </form>
+                      <div className="grid gap-1.5">
+                        <Label htmlFor="reminder-type">Type</Label>
 
-                    {reminders.length ===
-                    0 ? (
-                      <p className="dashboard-empty">
-                        No reminders yet. Add
-                        medicine, hydration,
-                        activity, or appointment
-                        reminders above.
-                      </p>
-                    ) : (
-                      <div className="dashboard-reminder-list">
-                        {reminders.map(
-                          (reminder) => {
-                            const status =
-                              getReminderStatus(
-                                reminder
-                              );
-
-                            return (
-                              <div
-                                className={`dashboard-reminder-item ${
-                                  reminder.completed
-                                    ? "dashboard-reminder-completed"
-                                    : ""
-                                }`}
-                                key={reminder.id}
-                              >
-                                <div className="dashboard-reminder-icon">
-                                  {
-                                    getReminderIcon(
-                                      reminder.reminder_type
-                                    )
-                                  }
-                                </div>
-
-                                <div className="dashboard-reminder-content">
-                                  <p className="dashboard-reminder-title">
-                                    {
-                                      reminder.title
-                                    }
-                                  </p>
-
-                                  <p className="dashboard-reminder-meta">
-                                    {
-                                      getReminderLabel(
-                                        reminder.reminder_type
-                                      )
-                                    }{" "}
-                                    ·{" "}
-                                    {formatReminderTime(
-                                      reminder.scheduled_at
-                                    )}{" "}
-                                    ·{" "}
-                                    {
-                                      reminder.repeat
-                                    }
-                                  </p>
-
-                                  {reminder.description && (
-                                    <p
-                                      className="dashboard-reminder-meta"
-                                      style={{
-                                        marginTop:
-                                          "4px",
-                                      }}
-                                    >
-                                      {
-                                        reminder.description
-                                      }
-                                    </p>
-                                  )}
-
-                                  <div
-                                    className={`dashboard-reminder-status ${status.key}`}
-                                  >
-                                    <span>
-                                      {
-                                        status.icon
-                                      }
-                                    </span>
-
-                                    <span>
-                                      {
-                                        status.label
-                                      }
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="dashboard-reminder-actions">
-                                  {reminder.completed ? (
-                                    <button
-                                      className="dashboard-reminder-action"
-                                      type="button"
-                                      onClick={() =>
-                                        reopenReminder(
-                                          reminder.id
-                                        )
-                                      }
-                                    >
-                                      Reopen
-                                    </button>
-                                  ) : (
-                                    <button
-                                      className="dashboard-reminder-action complete"
-                                      type="button"
-                                      onClick={() =>
-                                        completeReminder(
-                                          reminder.id
-                                        )
-                                      }
-                                    >
-                                      Complete
-                                    </button>
-                                  )}
-
-                                  <button
-                                    className="dashboard-reminder-action"
-                                    type="button"
-                                    onClick={() =>
-                                      deleteReminder(
-                                        reminder.id
-                                      )
-                                    }
-                                  >
-                                    Remove
-                                  </button>
-                                </div>
-                              </div>
-                            );
+                        <select
+                          id="reminder-type"
+                          className={selectClassName}
+                          value={newReminder.reminder_type}
+                          onChange={(event) =>
+                            setNewReminder((current) => ({
+                              ...current,
+                              reminder_type: event.target.value,
+                            }))
                           }
-                        )}
+                        >
+                          <option value="medicine">Medicine</option>
+                          <option value="hydration">Hydration</option>
+                          <option value="activity">Daily Activity</option>
+                          <option value="appointment">Appointment</option>
+                        </select>
                       </div>
-                    )}
-                  </>
-                )}
+
+                      <div className="grid gap-1.5">
+                        <Label htmlFor="reminder-time">Date &amp; Time</Label>
+
+                        <Input
+                          id="reminder-time"
+                          type="datetime-local"
+                          value={newReminder.scheduled_at}
+                          onChange={(event) =>
+                            setNewReminder((current) => ({
+                              ...current,
+                              scheduled_at: event.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+
+                      <div className="grid gap-1.5">
+                        <Label htmlFor="reminder-repeat">Repeat</Label>
+
+                        <select
+                          id="reminder-repeat"
+                          className={selectClassName}
+                          value={newReminder.repeat}
+                          onChange={(event) =>
+                            setNewReminder((current) => ({
+                              ...current,
+                              repeat: event.target.value,
+                            }))
+                          }
+                        >
+                          <option value="once">Once</option>
+                          <option value="daily">Daily</option>
+                          <option value="weekly">Weekly</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="reminder-description">Notes</Label>
+
+                      <Textarea
+                        id="reminder-description"
+                        placeholder="Optional note for the caregiver"
+                        value={newReminder.description}
+                        onChange={(event) =>
+                          setNewReminder((current) => ({
+                            ...current,
+                            description: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <Button type="submit" variant="primary" className="justify-self-start">
+                      + Add Reminder
+                    </Button>
+                  </form>
+
+                  {reminders.length === 0 ? (
+                    <p className="text-sm leading-relaxed text-faint">
+                      No reminders yet. Add medicine, hydration, activity, or appointment
+                      reminders above.
+                    </p>
+                  ) : (
+                    <div className="grid gap-2.5">
+                      {reminders.map((reminder) => {
+                        const status = getReminderStatus(reminder);
+                        const statusBadgeVariant =
+                          REMINDER_STATUS_BADGE_VARIANT[status.key] || "muted";
+
+                        return (
+                          <div
+                            className={cn(
+                              "grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-xl bg-muted p-3.5 sm:grid-cols-[auto_minmax(0,1fr)_auto]",
+                              reminder.completed && "opacity-[0.65]"
+                            )}
+                            key={reminder.id}
+                          >
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-accent-foreground">
+                              {(() => {
+                                const ReminderIcon = getReminderIcon(reminder.reminder_type);
+                                return <ReminderIcon className="h-5 w-5" aria-hidden="true" />;
+                              })()}
+                            </div>
+
+                            <div className="min-w-0">
+                              <p className="mb-1 break-words font-bold text-foreground">
+                                {reminder.title}
+                              </p>
+
+                              <p className="break-words text-sm leading-relaxed text-faint">
+                                {getReminderLabel(reminder.reminder_type)} ·{" "}
+                                {formatReminderTime(reminder.scheduled_at)} ·{" "}
+                                {reminder.repeat}
+                              </p>
+
+                              {reminder.description && (
+                                <p className="mt-1 break-words text-sm leading-relaxed text-faint">
+                                  {reminder.description}
+                                </p>
+                              )}
+
+                              <Badge
+                                variant={statusBadgeVariant}
+                                className="mt-1.5 px-2.5 py-1 text-xs"
+                              >
+                                <status.icon className="h-3 w-3" aria-hidden="true" />
+                                <span>{status.label}</span>
+                              </Badge>
+                            </div>
+
+                            <div className="col-span-2 flex flex-wrap gap-2 sm:col-span-1 sm:col-start-3 sm:justify-end">
+                              {reminder.completed ? (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => reopenReminder(reminder.id)}
+                                >
+                                  Reopen
+                                </Button>
+                              ) : (
+                                <Button
+                                  type="button"
+                                  variant="primary"
+                                  size="sm"
+                                  onClick={() => completeReminder(reminder.id)}
+                                >
+                                  Complete
+                                </Button>
+                              )}
+
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => deleteReminder(reminder.id)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+            </Card>
+
+            <Card className="min-w-0 p-6 sm:p-7">
+              <h2 className="mb-5 text-xl text-foreground sm:text-2xl">
+                Quick Actions
+              </h2>
+
+              <div className="grid gap-3">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full justify-start text-left"
+                  onClick={onOpenMemoryVault}
+                >
+                  <BookOpen className="h-5 w-5" aria-hidden="true" />
+                  Open Memory Vault
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full justify-start text-left"
+                  onClick={onOpenVoiceMemory}
+                >
+                  <Mic className="h-5 w-5" aria-hidden="true" />
+                  Record a Voice Memory
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="w-full justify-start text-left"
+                  onClick={onOpenPatientProfile}
+                >
+                  <Settings2 className="h-5 w-5" aria-hidden="true" />
+                  Personalize Patient
+                </Button>
               </div>
-
-              <div className="dashboard-panel">
-                <h2 className="dashboard-panel-title">
-                  Quick Actions
-                </h2>
-
-                <div className="dashboard-actions">
-                  <button
-                    className="dashboard-action-button dashboard-primary-action"
-                    onClick={
-                      onOpenMemoryVault
-                    }
-                  >
-                    📖 Open Memory Vault
-                  </button>
-
-                  <button
-                    className="dashboard-action-button dashboard-secondary-action"
-                    onClick={
-                      onOpenVoiceMemory
-                    }
-                  >
-                    🎙 Record a Voice Memory
-                  </button>
-
-                  <button
-                    className="dashboard-action-button dashboard-secondary-action"
-                    onClick={
-                      onOpenPatientProfile
-                    }
-                  >
-                    ✨ Personalize Patient
-                  </button>
-                </div>
-              </div>
-            </div>
+            </Card>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
