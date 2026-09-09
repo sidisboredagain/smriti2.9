@@ -96,19 +96,13 @@ function MemoryMatchGame({ game, disabled, onSubmit, speakText }) {
             onClick={() => handleCardClick(card)}
             disabled={disabled || isRevealed}
             style={{
-              background: isRevealed
-                ? "#edf3ed"
-                : isWrong
-                ? "#fbe9e3"
+              background: isRevealed ? "#e3f0e6" : isWrong ? "#f8dedc"
                 : faceUp
-                ? "#fffdf9"
-                : "#57765f",
-              color: faceUp ? "#28352f" : "#f8f5ef",
-              border: isRevealed
-                ? "2px solid #57765f"
-                : isWrong
-                ? "2px solid #c17a5c"
-                : "1px solid #e8e1d5",
+                ? "#fffcf6"
+                : "#bd5b34",
+              color: faceUp ? "#2a2119" : "#faf5eb",
+              border: isRevealed ? "2px solid #2f7a4d" : isWrong ? "2px solid #b3261e"
+                : "1px solid #e6d9bf",
               cursor: disabled || isRevealed ? "not-allowed" : "pointer",
             }}
           >
@@ -280,12 +274,8 @@ function ObjectVisualRecallGame({
               onClick={() => handleChoose(card)}
               disabled={disabled}
               style={{
-                border: isSelected
-                  ? answerResult?.correct
-                    ? "3px solid #57765f"
-                    : "3px solid #a05a45"
-                  : "2px solid #e8e1d5",
-                background: isSelected ? "#edf3ed" : "#fffdf9",
+                border: isSelected ? answerResult?.correct ? "3px solid #2f7a4d" : "3px solid #b3261e" : "2px solid #e6d9bf",
+                background: isSelected ? "#fbeee6" : "#fffcf6",
                 cursor: disabled ? "not-allowed" : "pointer",
               }}
             >
@@ -673,10 +663,10 @@ function Therapy() {
         {`
           .therapy-page {
             min-height: 100vh;
-            background: #f8f5ef;
-            padding: 60px 7%;
-            color: #28352f;
-            font-family: Arial, Helvetica, sans-serif;
+            background: #faf5eb;
+            padding: 96px 7% 60px;
+            color: #2a2119;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
           }
 
           .therapy-container {
@@ -685,7 +675,7 @@ function Therapy() {
           }
 
           .therapy-label {
-            color: #57765f;
+            color: #bd5b34;
             font-weight: 700;
             font-size: 14px;
             letter-spacing: 1px;
@@ -693,14 +683,14 @@ function Therapy() {
           }
 
           .therapy-title {
-            color: #28352f;
+            color: #2a2119;
             font-size: 46px;
             line-height: 1.1;
             margin: 0 0 16px;
           }
 
           .therapy-description {
-            color: #66736b;
+            color: #6e6153;
             font-size: 18px;
             line-height: 1.7;
             max-width: 650px;
@@ -709,7 +699,7 @@ function Therapy() {
 
           .therapy-language {
             margin-top: 18px;
-            color: #57765f;
+            color: #bd5b34;
             font-size: 15px;
             font-weight: 700;
           }
@@ -719,7 +709,7 @@ function Therapy() {
             padding: 15px 24px;
             border: none;
             border-radius: 12px;
-            background: #57765f;
+            background: #bd5b34;
             color: #ffffff;
             font-size: 16px;
             font-weight: 700;
@@ -728,8 +718,8 @@ function Therapy() {
 
           .therapy-session-card {
             margin-top: 40px;
-            background: #fffdf9;
-            border: 1px solid #e8e1d5;
+            background: #fffcf6;
+            border: 1px solid #e6d9bf;
             border-radius: 24px;
             padding: 35px;
             box-shadow: 0 18px 50px rgba(48, 59, 52, 0.08);
@@ -744,7 +734,7 @@ function Therapy() {
           }
 
           .therapy-progress-text {
-            color: #57765f;
+            color: #bd5b34;
             font-weight: 700;
             white-space: nowrap;
           }
@@ -754,18 +744,18 @@ function Therapy() {
             height: 10px;
             margin: 0 0 28px;
             border-radius: 999px;
-            background: #e4e9e3;
+            background: #efe6d3;
             overflow: hidden;
           }
 
           .therapy-progress-fill {
             height: 100%;
             border-radius: 999px;
-            background: #57765f;
+            background: #bd5b34;
           }
 
           .therapy-game-label {
-            color: #8a968e;
+            color: #948572;
             font-size: 13px;
             font-weight: 700;
             text-transform: uppercase;
@@ -779,8 +769,8 @@ function Therapy() {
             gap: 8px;
             padding: 8px 12px;
             border-radius: 999px;
-            background: #edf3ed;
-            color: #46634f;
+            background: #fbeee6;
+            color: #9a4728;
             font-size: 14px;
             font-weight: 700;
             margin-bottom: 14px;
@@ -803,21 +793,21 @@ function Therapy() {
             align-items: center;
             padding: 7px 10px;
             border-radius: 999px;
-            background: #f4f6f1;
-            color: #66736b;
+            background: #f5eeda;
+            color: #6e6153;
             font-size: 12px;
             font-weight: 700;
           }
 
           .therapy-memory-title {
-            color: #57765f;
+            color: #bd5b34;
             font-size: 14px;
             font-weight: 700;
             margin: 0 0 18px;
           }
 
           .therapy-question {
-            color: #28352f;
+            color: #2a2119;
             font-size: 30px;
             line-height: 1.45;
             margin: 0 0 18px;
@@ -827,10 +817,10 @@ function Therapy() {
           .therapy-listen-button {
             margin-bottom: 24px;
             padding: 12px 18px;
-            border: 1px solid #57765f;
+            border: 1px solid #bd5b34;
             border-radius: 10px;
-            background: #fffdf9;
-            color: #57765f;
+            background: #fffcf6;
+            color: #bd5b34;
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
@@ -860,9 +850,9 @@ function Therapy() {
           .therapy-audio-button {
             width: 58px;
             border-radius: 12px;
-            border: 1px solid #57765f;
-            background: #fffdf9;
-            color: #57765f;
+            border: 1px solid #bd5b34;
+            background: #fffcf6;
+            color: #bd5b34;
             font-size: 20px;
             cursor: pointer;
           }
@@ -900,8 +890,8 @@ function Therapy() {
             min-height: 90px;
             padding: 12px;
             border-radius: 14px;
-            border: 2px dashed #c7d3c8;
-            background: #fffdf9;
+            border: 2px dashed #d8c7a3;
+            background: #fffcf6;
             text-align: center;
           }
 
@@ -912,7 +902,7 @@ function Therapy() {
             width: 28px;
             height: 28px;
             border-radius: 999px;
-            background: #57765f;
+            background: #bd5b34;
             color: #ffffff;
             font-weight: 700;
             font-size: 14px;
@@ -921,17 +911,17 @@ function Therapy() {
           .sequence-slot-label {
             font-size: 15px;
             font-weight: 700;
-            color: #28352f;
+            color: #2a2119;
             overflow-wrap: anywhere;
           }
 
           .sequence-undo-button {
             margin-bottom: 16px;
             padding: 10px 16px;
-            border: 1px solid #c7d3c8;
+            border: 1px solid #d8c7a3;
             border-radius: 10px;
-            background: #fffdf9;
-            color: #57765f;
+            background: #fffcf6;
+            color: #bd5b34;
             font-weight: 700;
             cursor: pointer;
           }
@@ -954,9 +944,9 @@ function Therapy() {
             border-radius: 12px;
             font-size: 17px;
             text-align: left;
-            border: 1px solid #e8e1d5;
-            background: #fffdf9;
-            color: #28352f;
+            border: 1px solid #e6d9bf;
+            background: #fffcf6;
+            color: #2a2119;
             overflow-wrap: anywhere;
           }
 
@@ -993,7 +983,7 @@ function Therapy() {
           .visual-recall-label {
             font-size: 16px;
             font-weight: 700;
-            color: #28352f;
+            color: #2a2119;
             overflow-wrap: anywhere;
           }
 
@@ -1001,7 +991,7 @@ function Therapy() {
             margin-top: 22px;
             padding: 15px;
             border-radius: 12px;
-            background: #f4f6f1;
+            background: #f5eeda;
             font-weight: 700;
             line-height: 1.5;
           }
@@ -1012,7 +1002,7 @@ function Therapy() {
             padding: 15px;
             border: none;
             border-radius: 12px;
-            background: #57765f;
+            background: #bd5b34;
             color: #ffffff;
             font-size: 16px;
             font-weight: 700;
@@ -1031,19 +1021,19 @@ function Therapy() {
 
           .therapy-complete h2 {
             margin: 0 0 12px;
-            color: #28352f;
+            color: #2a2119;
             font-size: 32px;
           }
 
           .therapy-complete p {
             margin: 0;
-            color: #66736b;
+            color: #6e6153;
             line-height: 1.6;
           }
 
           .therapy-message {
             margin-top: 22px;
-            color: #a05a45;
+            color: #b3261e;
             font-weight: 700;
             font-size: 16px;
             line-height: 1.5;
@@ -1319,17 +1309,11 @@ function Therapy() {
                           style={{
                             border:
                               selectedAnswer === option
-                                ? answerResult?.correct
-                                  ? "2px solid #57765f"
-                                  : answerResult
-                                  ? "2px solid #a05a45"
-                                  : "2px solid #57765f"
-                                : "1px solid #e8e1d5",
+                                ? answerResult?.correct ? "2px solid #2f7a4d" : answerResult ? "2px solid #b3261e" : "2px solid #2f7a4d"
+                                : "1px solid #e6d9bf",
                             background:
-                              selectedAnswer === option
-                                ? "#edf3ed"
-                                : "#fffdf9",
-                            color: "#28352f",
+                              selectedAnswer === option ? "#fbeee6" : "#fffcf6",
+                            color: "#2a2119",
                             cursor:
                               checkingAnswer ||
                               answerResult
@@ -1372,9 +1356,7 @@ function Therapy() {
                 <div
                   className="therapy-feedback"
                   style={{
-                    color: answerResult.correct
-                      ? "#57765f"
-                      : "#9a6a45",
+                    color: answerResult.correct ? "#2f7a4d" : "#b3261e",
                   }}
                 >
                   {answerResult.correct
@@ -1432,7 +1414,7 @@ function Therapy() {
                 <p
                   style={{
                     marginTop: "15px",
-                    color: "#57765f",
+                    color: "#bd5b34",
                     fontWeight: "700",
                   }}
                 >

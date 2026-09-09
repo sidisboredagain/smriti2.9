@@ -379,11 +379,11 @@ function MemoryVault() {
       <style>{`
         .memory-vault-page {
           min-height: 100vh;
-          background: #f8f5ef;
-          padding: 45px 7%;
+          background: #faf5eb;
+          padding: 96px 7% 45px;
           box-sizing: border-box;
-          color: #28352f;
-          font-family: Arial, Helvetica, sans-serif;
+          color: #2a2119;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
         }
 
         .memory-vault-container {
@@ -393,7 +393,7 @@ function MemoryVault() {
 
         .memory-vault-brand {
           margin: 0 0 8px;
-          color: #57765f;
+          color: #bd5b34;
           font-size: 14px;
           font-weight: 700;
           letter-spacing: 1px;
@@ -401,7 +401,7 @@ function MemoryVault() {
 
         .memory-vault-title {
           margin: 0 0 10px;
-          color: #28352f;
+          color: #2a2119;
           font-size: 44px;
           line-height: 1.1;
         }
@@ -409,7 +409,7 @@ function MemoryVault() {
         .memory-vault-description {
           max-width: 720px;
           margin: 0 0 14px;
-          color: #66736b;
+          color: #6e6153;
           font-size: 18px;
           line-height: 1.6;
         }
@@ -421,8 +421,8 @@ function MemoryVault() {
           margin: 0 0 34px;
           padding: 8px 12px;
           border-radius: 999px;
-          background: #edf3ed;
-          color: #46634f;
+          background: #fbeee6;
+          color: #9a4728;
           font-size: 14px;
           font-weight: 700;
         }
@@ -437,8 +437,8 @@ function MemoryVault() {
         }
 
         .memory-vault-panel {
-          background: #fffdf9;
-          border: 1px solid #e8e1d5;
+          background: #fffcf6;
+          border: 1px solid #e6d9bf;
           border-radius: 20px;
           padding: 28px;
           min-width: 0;
@@ -446,13 +446,13 @@ function MemoryVault() {
 
         .memory-vault-panel-title {
           margin: 0 0 7px;
-          color: #28352f;
+          color: #2a2119;
           font-size: 22px;
         }
 
         .memory-vault-panel-description {
           margin: 0 0 22px;
-          color: #738078;
+          color: #948572;
           font-size: 14px;
           line-height: 1.5;
         }
@@ -464,7 +464,7 @@ function MemoryVault() {
         }
 
         .memory-vault-label {
-          color: #46634f;
+          color: #9a4728;
           font-size: 13px;
           font-weight: 700;
         }
@@ -473,21 +473,21 @@ function MemoryVault() {
           width: 100%;
           box-sizing: border-box;
           padding: 14px;
-          border: 1px solid #d9dfd8;
+          border: 1px solid #e6d9bf;
           border-radius: 11px;
-          background: #fffdf9;
-          color: #28352f;
+          background: #fffcf6;
+          color: #2a2119;
           font: inherit;
           font-size: 16px;
         }
 
         .memory-vault-input::placeholder {
-          color: #9aa59e;
+          color: #a89985;
         }
 
         .memory-vault-input:focus {
           outline: none;
-          border-color: #57765f;
+          border-color: #bd5b34;
           box-shadow:
             0 0 0 3px
             rgba(87, 118, 95, .1);
@@ -501,7 +501,7 @@ function MemoryVault() {
 
         .memory-vault-hint {
           margin: 6px 0 0;
-          color: #8a968e;
+          color: #948572;
           font-size: 12px;
           line-height: 1.5;
         }
@@ -512,7 +512,7 @@ function MemoryVault() {
           padding: 14px 18px;
           border: none;
           border-radius: 12px;
-          background: #57765f;
+          background: #bd5b34;
           color: #ffffff;
           cursor: pointer;
           font-size: 16px;
@@ -535,11 +535,11 @@ function MemoryVault() {
         }
 
         .memory-vault-message.success {
-          color: #57765f;
+          color: #2f7a4d;
         }
 
         .memory-vault-message.error {
-          color: #a05a45;
+          color: #b3261e;
         }
 
         .memory-vault-saved-header {
@@ -554,8 +554,8 @@ function MemoryVault() {
           flex: 0 0 auto;
           padding: 6px 10px;
           border-radius: 999px;
-          background: #f1eee6;
-          color: #6e664f;
+          background: #f2e9d8;
+          color: #6e6153;
           font-size: 12px;
           font-weight: 700;
         }
@@ -567,9 +567,9 @@ function MemoryVault() {
 
         .memory-vault-memory-card {
           padding: 20px;
-          border: 1px solid #e8e1d5;
+          border: 1px solid #e6d9bf;
           border-radius: 18px;
-          background: #fffdf9;
+          background: #fffcf6;
           transition:
             transform .18s ease,
             box-shadow .18s ease,
@@ -578,7 +578,7 @@ function MemoryVault() {
 
         .memory-vault-memory-card:hover {
           transform: translateY(-2px);
-          border-color: #d5ddd4;
+          border-color: #e6d9bf;
           box-shadow:
             0 10px 25px
             rgba(40, 53, 47, .06);
@@ -599,8 +599,8 @@ function MemoryVault() {
           min-width: 0;
           padding: 7px 10px;
           border-radius: 999px;
-          background: #edf3ed;
-          color: #46634f;
+          background: #fbeee6;
+          color: #9a4728;
           font-size: 11px;
           font-weight: 700;
           letter-spacing: .6px;
@@ -609,14 +609,14 @@ function MemoryVault() {
 
         .memory-vault-memory-date {
           flex: 0 0 auto;
-          color: #9aa59e;
+          color: #a89985;
           font-size: 11px;
           font-weight: 600;
         }
 
         .memory-vault-memory-title {
           margin: 0 0 9px;
-          color: #28352f;
+          color: #2a2119;
           font-size: 23px;
           line-height: 1.25;
           overflow-wrap: anywhere;
@@ -624,7 +624,7 @@ function MemoryVault() {
 
         .memory-vault-memory-content {
           margin: 0 0 17px;
-          color: #66736b;
+          color: #6e6153;
           font-size: 15px;
           line-height: 1.65;
           overflow-wrap: anywhere;
@@ -642,7 +642,7 @@ function MemoryVault() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          color: #8a968e;
+          color: #948572;
           font-size: 12px;
           font-weight: 600;
         }
@@ -652,7 +652,7 @@ function MemoryVault() {
           padding: 11px 15px;
           border: none;
           border-radius: 10px;
-          background: #57765f;
+          background: #bd5b34;
           color: #ffffff;
           cursor: pointer;
           font-size: 14px;
@@ -671,9 +671,9 @@ function MemoryVault() {
         .memory-vault-game {
           margin-top: 18px;
           padding: 18px;
-          border: 1px solid #dfe6de;
+          border: 1px solid #efe6d3;
           border-radius: 15px;
-          background: #f4f6f1;
+          background: #f5eeda;
         }
 
         .memory-vault-game-header {
@@ -686,7 +686,7 @@ function MemoryVault() {
 
         .memory-vault-game-label {
           margin: 0 0 5px;
-          color: #8a968e;
+          color: #948572;
           font-size: 11px;
           font-weight: 700;
           text-transform: uppercase;
@@ -697,7 +697,7 @@ function MemoryVault() {
           padding: 5px 8px;
           border-radius: 999px;
           background: #ffffff;
-          color: #57765f;
+          color: #bd5b34;
           font-size: 11px;
           font-weight: 700;
           white-space: nowrap;
@@ -705,7 +705,7 @@ function MemoryVault() {
 
         .memory-vault-game-question {
           margin: 0 0 15px;
-          color: #28352f;
+          color: #2a2119;
           font-size: 18px;
           line-height: 1.45;
           overflow-wrap: anywhere;
@@ -721,7 +721,7 @@ function MemoryVault() {
           min-height: 48px;
           padding: 12px 13px;
           border-radius: 10px;
-          color: #28352f;
+          color: #2a2119;
           font-size: 15px;
           cursor: pointer;
           text-align: left;
@@ -732,8 +732,8 @@ function MemoryVault() {
         }
 
         .memory-vault-option:hover {
-          border-color: #aebcaf !important;
-          background: #f8faf6 !important;
+          border-color: #b8a888 !important;
+          background: #f5eeda !important;
         }
 
         .memory-vault-game-message {
@@ -745,10 +745,10 @@ function MemoryVault() {
 
         .memory-vault-empty {
           padding: 28px 22px;
-          border: 1px dashed #d6ddd5;
+          border: 1px dashed #e6d9bf;
           border-radius: 16px;
-          background: #f7f7f3;
-          color: #738078;
+          background: #f5eeda;
+          color: #948572;
           line-height: 1.6;
           text-align: center;
         }
@@ -759,13 +759,13 @@ function MemoryVault() {
         }
 
         .memory-vault-loading {
-          color: #57765f;
+          color: #bd5b34;
           font-weight: 700;
         }
 
         @media (max-width: 900px) {
           .memory-vault-page {
-            padding: 40px 5%;
+            padding: 90px 5% 40px;
           }
 
           .memory-vault-layout {
@@ -1182,7 +1182,7 @@ function MemoryVault() {
                                 <p
                                   style={{
                                     margin: 0,
-                                    color: "#57765f",
+                                    color: "#bd5b34",
                                     fontSize: "13px",
                                     fontWeight: "700",
                                   }}
@@ -1224,13 +1224,13 @@ function MemoryVault() {
                                         border:
                                           game.selectedAnswer ===
                                           option
-                                            ? "2px solid #57765f"
-                                            : "1px solid #d9dfd8",
+                                            ? "2px solid #bd5b34"
+                                            : "1px solid #e6d9bf",
                                         background:
                                           game.selectedAnswer ===
                                           option
-                                            ? "#edf3ed"
-                                            : "#fffdf9",
+                                            ? "#fbeee6"
+                                            : "#fffcf6",
                                       }}
                                     >
                                       {option}
@@ -1244,11 +1244,7 @@ function MemoryVault() {
                                 className="memory-vault-game-message"
                                 style={{
                                   color:
-                                    gameMessage.startsWith(
-                                      "✓"
-                                    )
-                                      ? "#57765f"
-                                      : "#9a6a45",
+                                    gameMessage.startsWith("✓") ? "#2f7a4d" : "#b3261e",
                                 }}
                               >
                                 {gameMessage}

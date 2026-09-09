@@ -282,11 +282,11 @@ function VoiceMemory() {
       <style>{`
         .voice-memory-page {
           min-height: 100vh;
-          background: #f8f5ef;
-          padding: 45px 7%;
+          background: #faf5eb;
+          padding: 96px 7% 45px;
           box-sizing: border-box;
-          color: #28352f;
-          font-family: Arial, Helvetica, sans-serif;
+          color: #2a2119;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
         }
 
         .voice-memory-container {
@@ -297,7 +297,7 @@ function VoiceMemory() {
 
         .voice-memory-brand {
           margin: 0 0 8px;
-          color: #57765f;
+          color: #bd5b34;
           font-size: 14px;
           font-weight: 700;
           letter-spacing: 1px;
@@ -305,7 +305,7 @@ function VoiceMemory() {
 
         .voice-memory-title {
           margin: 0 0 12px;
-          color: #28352f;
+          color: #2a2119;
           font-size: 44px;
           line-height: 1.1;
         }
@@ -313,7 +313,7 @@ function VoiceMemory() {
         .voice-memory-description {
           max-width: 650px;
           margin: 0 auto 20px;
-          color: #66736b;
+          color: #6e6153;
           font-size: 18px;
           line-height: 1.7;
         }
@@ -325,17 +325,17 @@ function VoiceMemory() {
           margin: 0 auto 28px;
           padding: 8px 12px;
           border-radius: 999px;
-          background: #edf3ed;
-          color: #46634f;
+          background: #fbeee6;
+          color: #9a4728;
           font-size: 14px;
           font-weight: 700;
         }
 
         .voice-memory-card {
           padding: 46px 36px;
-          border: 1px solid #e8e1d5;
+          border: 1px solid #e6d9bf;
           border-radius: 24px;
-          background: #fffdf9;
+          background: #fffcf6;
           box-shadow:
             0 18px 50px
             rgba(48, 59, 52, .08);
@@ -350,7 +350,7 @@ function VoiceMemory() {
           align-items: center;
           justify-content: center;
           border-radius: 50%;
-          background: #f1eee6;
+          background: #f2e9d8;
         }
 
         .voice-memory-icon {
@@ -360,7 +360,7 @@ function VoiceMemory() {
 
         .voice-memory-card-title {
           margin: 0 0 10px;
-          color: #28352f;
+          color: #2a2119;
           font-size: 28px;
           line-height: 1.25;
         }
@@ -368,7 +368,7 @@ function VoiceMemory() {
         .voice-memory-card-description {
           max-width: 560px;
           margin: 0 auto 26px;
-          color: #66736b;
+          color: #6e6153;
           font-size: 16px;
           line-height: 1.65;
         }
@@ -378,8 +378,8 @@ function VoiceMemory() {
           padding: 14px 18px;
           max-width: 570px;
           border-radius: 13px;
-          background: #f4f6f1;
-          color: #57765f;
+          background: #f5eeda;
+          color: #bd5b34;
           font-size: 15px;
           line-height: 1.6;
         }
@@ -387,7 +387,7 @@ function VoiceMemory() {
         .voice-memory-example-label {
           display: block;
           margin-bottom: 5px;
-          color: #8a968e;
+          color: #948572;
           font-size: 11px;
           font-weight: 700;
           text-transform: uppercase;
@@ -400,7 +400,7 @@ function VoiceMemory() {
           padding: 14px 24px;
           border: none;
           border-radius: 12px;
-          background: #57765f;
+          background: #bd5b34;
           color: #ffffff;
           cursor: pointer;
           font-size: 16px;
@@ -422,7 +422,7 @@ function VoiceMemory() {
         }
 
         .voice-memory-stop-button {
-          background: #a05a45;
+          background: #b3261e;
         }
 
         .voice-memory-stop-button:hover {
@@ -440,8 +440,8 @@ function VoiceMemory() {
           margin-bottom: 16px;
           padding: 8px 13px;
           border-radius: 999px;
-          background: #fbeceb;
-          color: #a05a45;
+          background: #f8dedc;
+          color: #b3261e;
           font-size: 13px;
           font-weight: 700;
         }
@@ -450,7 +450,7 @@ function VoiceMemory() {
           width: 9px;
           height: 9px;
           border-radius: 50%;
-          background: #a05a45;
+          background: #b3261e;
           animation:
             voice-memory-pulse
             1.2s ease-in-out infinite;
@@ -471,7 +471,7 @@ function VoiceMemory() {
 
         .voice-memory-timer {
           margin: 0 0 18px;
-          color: #28352f;
+          color: #2a2119;
           font-size: 30px;
           font-weight: 700;
           letter-spacing: 1px;
@@ -484,7 +484,7 @@ function VoiceMemory() {
           justify-content: center;
           gap: 8px;
           margin-top: 20px;
-          color: #57765f;
+          color: #bd5b34;
           font-weight: 700;
         }
 
@@ -492,7 +492,7 @@ function VoiceMemory() {
           width: 7px;
           height: 7px;
           border-radius: 50%;
-          background: #57765f;
+          background: #bd5b34;
           animation:
             voice-memory-processing
             1s infinite;
@@ -514,31 +514,31 @@ function VoiceMemory() {
           margin: 23px auto 0;
           padding: 12px 15px;
           border-radius: 11px;
-          color: #66736b;
-          background: #f7f7f3;
+          color: #6e6153;
+          background: #f5eeda;
           line-height: 1.5;
           font-size: 14px;
           font-weight: 700;
         }
 
         .voice-memory-message.success {
-          color: #57765f;
-          background: #edf3ed;
+          color: #2f7a4d;
+          background: #e3f0e6;
         }
 
         .voice-memory-transcript {
           max-width: 640px;
           margin: 24px auto 0;
           padding: 20px;
-          border: 1px solid #dfe6de;
+          border: 1px solid #efe6d3;
           border-radius: 15px;
-          background: #f4f6f1;
+          background: #f5eeda;
           text-align: left;
         }
 
         .voice-memory-transcript-label {
           margin: 0 0 8px;
-          color: #8a968e;
+          color: #948572;
           font-size: 11px;
           font-weight: 700;
           text-transform: uppercase;
@@ -547,7 +547,7 @@ function VoiceMemory() {
 
         .voice-memory-transcript-text {
           margin: 0;
-          color: #28352f;
+          color: #2a2119;
           font-size: 17px;
           line-height: 1.7;
           overflow-wrap: anywhere;
@@ -555,7 +555,7 @@ function VoiceMemory() {
 
         .voice-memory-help {
           margin: 25px 0 0;
-          color: #8a968e;
+          color: #948572;
           font-size: 12px;
           line-height: 1.5;
         }

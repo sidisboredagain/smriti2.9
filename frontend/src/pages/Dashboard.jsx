@@ -3,6 +3,904 @@ import { useEffect, useMemo, useState } from "react";
 const API_URL = "http://127.0.0.1:8000";
 const PATIENT_ID = 1;
 
+const DASHBOARD_STYLES = `
+        .dashboard-page {
+          min-height: 100vh;
+          background: #faf5eb;
+          padding: 96px 7% 45px;
+          box-sizing: border-box;
+          color: #2a2119;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+
+        .dashboard-container {
+          max-width: 1100px;
+          margin: 0 auto;
+        }
+
+        .dashboard-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 24px;
+          margin-bottom: 32px;
+        }
+
+        .dashboard-header-content {
+          min-width: 0;
+        }
+
+        .dashboard-label {
+          margin: 0 0 8px;
+          color: #bd5b34;
+          font-size: 14px;
+          font-weight: 700;
+          letter-spacing: 1px;
+        }
+
+        .dashboard-title {
+          margin: 0 0 10px;
+          color: #2a2119;
+          font-size: 44px;
+          line-height: 1.1;
+        }
+
+        .dashboard-subtitle {
+          margin: 0;
+          max-width: 680px;
+          color: #6e6153;
+          font-size: 18px;
+          line-height: 1.6;
+        }
+
+        .dashboard-logout {
+          border: 1px solid #d8c7a3;
+          background: transparent;
+          color: #9a4728;
+          padding: 11px 18px;
+          border-radius: 10px;
+          cursor: pointer;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+
+        .dashboard-grid {
+          display: grid;
+          grid-template-columns: repeat(
+            4,
+            minmax(0, 1fr)
+          );
+          gap: 16px;
+          margin-bottom: 25px;
+        }
+
+        .dashboard-stat,
+        .dashboard-panel {
+          background: #fffcf6;
+          border: 1px solid #e6d9bf;
+          border-radius: 20px;
+        }
+
+        .dashboard-stat {
+          padding: 22px;
+          min-width: 0;
+        }
+
+        .dashboard-stat-label,
+        .dashboard-session-label,
+        .dashboard-info-label,
+        .dashboard-reminder-summary-label {
+          margin: 0 0 7px;
+          color: #948572;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: .8px;
+        }
+
+        .dashboard-stat-value {
+          margin: 0;
+          color: #2a2119;
+          font-size: 26px;
+          font-weight: 700;
+          overflow-wrap: anywhere;
+        }
+
+        .dashboard-main-grid {
+          display: grid;
+          grid-template-columns:
+            minmax(0, 1.05fr)
+            minmax(0, .95fr);
+          gap: 25px;
+          align-items: start;
+        }
+
+        .dashboard-panel {
+          padding: 28px;
+          min-width: 0;
+        }
+
+        .dashboard-panel + .dashboard-panel {
+          margin-top: 25px;
+        }
+
+        .dashboard-panel-title {
+          margin: 0 0 20px;
+          color: #2a2119;
+          font-size: 22px;
+        }
+
+        .dashboard-patient-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+        }
+
+        .dashboard-info-box,
+        .dashboard-session,
+        .dashboard-reminder-summary-box {
+          background: #f5eeda;
+          border-radius: 14px;
+        }
+
+        .dashboard-info-box {
+          padding: 16px;
+          min-width: 0;
+        }
+
+        .dashboard-info-value,
+        .dashboard-session-value {
+          margin: 0;
+          color: #2a2119;
+          font-size: 17px;
+          font-weight: 700;
+          overflow-wrap: anywhere;
+        }
+
+        .dashboard-activity {
+          margin-top: 25px;
+        }
+
+        .dashboard-subheading {
+          margin: 0 0 14px;
+          color: #2a2119;
+          font-size: 18px;
+        }
+
+        .dashboard-activity-list,
+        .dashboard-reminder-list {
+          display: grid;
+          gap: 11px;
+        }
+
+        .dashboard-activity-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          background: #f5eeda;
+          border-radius: 12px;
+          padding: 14px;
+        }
+
+        .dashboard-activity-icon,
+        .dashboard-reminder-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex: 0 0 auto;
+          border-radius: 10px;
+          background: #fbeee6;
+        }
+
+        .dashboard-activity-icon {
+          width: 34px;
+          height: 34px;
+        }
+
+        .dashboard-reminder-icon {
+          width: 38px;
+          height: 38px;
+          font-size: 20px;
+        }
+
+        .dashboard-activity-content,
+        .dashboard-reminder-content {
+          min-width: 0;
+        }
+
+        .dashboard-activity-title,
+        .dashboard-reminder-title {
+          margin: 0 0 4px;
+          color: #2a2119;
+          font-weight: 700;
+          overflow-wrap: anywhere;
+        }
+
+        .dashboard-activity-text,
+        .dashboard-reminder-meta,
+        .dashboard-empty {
+          margin: 0;
+          color: #948572;
+          font-size: 14px;
+          line-height: 1.5;
+          overflow-wrap: anywhere;
+        }
+
+        .dashboard-session {
+          padding: 18px;
+        }
+
+        .dashboard-session-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 15px;
+        }
+
+        .dashboard-session-progress-value {
+          color: #bd5b34;
+          font-size: 24px;
+          font-weight: 700;
+        }
+
+        .dashboard-progress-bar {
+          width: 100%;
+          height: 10px;
+          margin-top: 15px;
+          border-radius: 999px;
+          background: #efe6d3;
+          overflow: hidden;
+        }
+
+        .dashboard-progress-fill {
+          height: 100%;
+          border-radius: 999px;
+          background: #bd5b34;
+        }
+
+        /*
+         * Memory graph
+         */
+
+        .memory-graph-intro {
+          margin: -8px 0 20px;
+          color: #6e6153;
+          line-height: 1.6;
+        }
+
+        .memory-graph-stats {
+          display: grid;
+          grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 18px;
+        }
+
+        .memory-graph-stat {
+          padding: 14px;
+          background: #f5eeda;
+          border-radius: 12px;
+        }
+
+        .memory-graph-stat-label {
+          margin: 0 0 5px;
+          color: #948572;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+        }
+
+        .memory-graph-stat-value {
+          margin: 0;
+          color: #2a2119;
+          font-size: 20px;
+          font-weight: 700;
+        }
+
+        .memory-graph-visual {
+          padding: 18px;
+          border: 1px solid #e6d9bf;
+          border-radius: 18px;
+          background:
+            linear-gradient(
+              145deg,
+              #fffcf6,
+              #f5eeda
+            );
+        }
+
+        .memory-graph-visual-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+
+        .memory-graph-visual-title {
+          margin: 0;
+          color: #2a2119;
+          font-size: 16px;
+          font-weight: 700;
+        }
+
+        .memory-graph-visual-subtitle {
+          margin: 4px 0 0;
+          color: #948572;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+
+        .memory-graph-legend {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .memory-graph-legend-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 6px 9px;
+          border: 1px solid #efe6d3;
+          border-radius: 999px;
+          background: #ffffff;
+          color: #6e6153;
+          font-size: 11px;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+
+        .memory-graph-board {
+          display: grid;
+          grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .memory-graph-cluster {
+          min-width: 0;
+          padding: 14px;
+          border: 1px solid #efe6d3;
+          border-radius: 14px;
+          background: rgba(
+            255,
+            253,
+            249,
+            .88
+          );
+        }
+
+        .memory-graph-memory-node {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+          padding: 11px 12px;
+          border-radius: 12px;
+          background: #bd5b34;
+          color: #ffffff;
+          font-size: 14px;
+          font-weight: 700;
+          box-shadow:
+            0 7px 18px
+            rgba(
+              87,
+              118,
+              95,
+              .14
+            );
+        }
+
+        .memory-graph-memory-node
+          span:last-child {
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+
+        .memory-graph-links {
+          display: grid;
+          gap: 8px;
+          margin-top: 11px;
+        }
+
+        .memory-graph-link {
+          display: grid;
+          grid-template-columns:
+            auto
+            minmax(72px, .55fr)
+            minmax(0, 1fr);
+          align-items: center;
+          gap: 8px;
+        }
+
+        .memory-graph-branch {
+          color: #b8a888;
+          font-size: 18px;
+          line-height: 1;
+        }
+
+        .memory-graph-connector {
+          color: #948572;
+          font-size: 10px;
+          font-weight: 700;
+          text-align: center;
+        }
+
+        .memory-graph-fact-node {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          min-width: 0;
+          padding: 7px 9px;
+          border-radius: 10px;
+          background: #f2e9d8;
+          color: #6e6153;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .memory-graph-fact-node
+          span:last-child {
+          min-width: 0;
+          overflow-wrap: anywhere;
+        }
+
+        .memory-graph-connections {
+          display: grid;
+          gap: 10px;
+          margin-top: 16px;
+        }
+
+        .memory-graph-connections-title {
+          margin: 0;
+          color: #2a2119;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .memory-graph-connection {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          padding: 12px;
+          border-radius: 12px;
+          background: #f5eeda;
+        }
+
+        .memory-graph-node {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 10px;
+          border-radius: 999px;
+          background: #fbeee6;
+          color: #9a4728;
+          font-size: 13px;
+          font-weight: 700;
+          max-width: 100%;
+        }
+
+        .memory-graph-node
+          span:last-child {
+          overflow-wrap: anywhere;
+        }
+
+        .memory-graph-arrow {
+          color: #948572;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        /*
+         * Reminders
+         */
+
+        .dashboard-reminder-summary {
+          display: grid;
+          grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 18px;
+        }
+
+        .dashboard-reminder-summary-box {
+          padding: 13px;
+        }
+
+        .dashboard-reminder-summary-value {
+          margin: 0;
+          color: #2a2119;
+          font-size: 20px;
+          font-weight: 700;
+        }
+
+        .dashboard-reminder-alert {
+          display: flex;
+          gap: 10px;
+          padding: 13px 14px;
+          margin-bottom: 14px;
+          border-radius: 12px;
+          font-weight: 700;
+          line-height: 1.5;
+        }
+
+        .dashboard-reminder-alert.overdue {
+          background: #f8dedc;
+          color: #b3261e;
+          border: 1px solid #eec0bd;
+        }
+
+        .dashboard-reminder-alert.due-soon {
+          background: #faf0d9;
+          color: #8a6d1f;
+          border: 1px solid #e8dcab;
+        }
+
+        .dashboard-reminder-form {
+          display: grid;
+          gap: 12px;
+          margin-bottom: 22px;
+        }
+
+        .dashboard-reminder-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .dashboard-reminder-field {
+          display: grid;
+          gap: 6px;
+        }
+
+        .dashboard-reminder-field label {
+          color: #6e6153;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .dashboard-reminder-field input,
+        .dashboard-reminder-field select,
+        .dashboard-reminder-field textarea {
+          width: 100%;
+          box-sizing: border-box;
+          border: 1px solid #e6d9bf;
+          border-radius: 10px;
+          background: #ffffff;
+          color: #2a2119;
+          padding: 11px 12px;
+          font: inherit;
+        }
+
+        .dashboard-reminder-field textarea {
+          min-height: 74px;
+          resize: vertical;
+        }
+
+        .dashboard-reminder-submit,
+        .dashboard-error-actions button {
+          border: none;
+          border-radius: 10px;
+          background: #bd5b34;
+          color: #ffffff;
+          padding: 12px 16px;
+          cursor: pointer;
+          font-weight: 700;
+        }
+
+        .dashboard-reminder-item {
+          display: grid;
+          grid-template-columns:
+            auto
+            minmax(0, 1fr)
+            auto;
+          gap: 12px;
+          align-items: start;
+          padding: 14px;
+          border-radius: 12px;
+          background: #f5eeda;
+        }
+
+        .dashboard-reminder-actions {
+          display: flex;
+          gap: 7px;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+        }
+
+        .dashboard-reminder-action {
+          border: 1px solid #d8c7a3;
+          border-radius: 9px;
+          background: transparent;
+          color: #9a4728;
+          padding: 8px 10px;
+          cursor: pointer;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .dashboard-reminder-action.complete {
+          border-color: #bd5b34;
+          background: #bd5b34;
+          color: #ffffff;
+        }
+
+        .dashboard-reminder-status {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          margin-top: 6px;
+          font-size: 12px;
+          font-weight: 700;
+        }
+
+        .dashboard-reminder-status.overdue {
+          color: #b3261e;
+        }
+
+        .dashboard-reminder-status.due-soon {
+          color: #8a6d1f;
+        }
+
+        .dashboard-reminder-status.scheduled,
+        .dashboard-reminder-status.completed {
+          color: #bd5b34;
+        }
+
+        .dashboard-reminder-completed {
+          opacity: .65;
+        }
+
+        .dashboard-reminder-error {
+          margin: 0 0 15px;
+          color: #b3261e;
+          font-weight: 700;
+          line-height: 1.5;
+        }
+
+        /*
+         * Quick actions
+         */
+
+        .dashboard-actions {
+          display: grid;
+          gap: 12px;
+        }
+
+        .dashboard-action-button {
+          width: 100%;
+          min-height: 52px;
+          border-radius: 12px;
+          padding: 14px 18px;
+          cursor: pointer;
+          font-weight: 700;
+          text-align: left;
+        }
+
+        .dashboard-primary-action {
+          border: none;
+          background: #bd5b34;
+          color: #ffffff;
+        }
+
+        .dashboard-secondary-action {
+          border: 1px solid #d8c7a3;
+          background: transparent;
+          color: #9a4728;
+        }
+
+        /*
+         * Loading and error
+         */
+
+        .memory-graph-loading {
+          color: #bd5b34;
+          font-weight: 700;
+        }
+
+        .memory-graph-error {
+          margin: 0;
+          color: #b3261e;
+          font-weight: 700;
+          line-height: 1.5;
+        }
+
+        .dashboard-centered-message {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #bd5b34;
+          font-size: 18px;
+          font-weight: 700;
+        }
+
+        .dashboard-error-card {
+          max-width: 700px;
+          margin: 100px auto;
+          padding: 30px;
+          border: 1px solid #e6d9bf;
+          border-radius: 20px;
+          background: #fffcf6;
+          text-align: center;
+        }
+
+        .dashboard-error-card p {
+          color: #b3261e;
+          line-height: 1.6;
+        }
+
+        .dashboard-error-actions {
+          display: flex;
+          justify-content: center;
+          gap: 10px;
+        }
+
+        .dashboard-error-actions .secondary {
+          border: 1px solid #d8c7a3;
+          background: transparent;
+          color: #9a4728;
+        }
+
+        /*
+         * Responsive
+         */
+
+        @media (max-width: 900px) {
+          .dashboard-page {
+            padding: 90px 5% 40px;
+          }
+
+          .dashboard-grid {
+            grid-template-columns:
+              repeat(
+                2,
+                minmax(0, 1fr)
+              );
+          }
+
+          .dashboard-main-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .memory-graph-board {
+            grid-template-columns: 1fr;
+          }
+
+          .memory-graph-visual-header {
+            flex-direction: column;
+          }
+
+          .memory-graph-legend {
+            justify-content: flex-start;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .dashboard-page {
+            padding: 70px 16px 35px;
+          }
+
+          .dashboard-header {
+            flex-direction: column;
+            gap: 18px;
+          }
+
+          .dashboard-title {
+            font-size: 34px;
+          }
+
+          .dashboard-subtitle {
+            font-size: 16px;
+          }
+
+          .dashboard-logout {
+            width: 100%;
+          }
+
+          .dashboard-grid {
+            grid-template-columns:
+              1fr 1fr;
+            gap: 12px;
+          }
+
+          .dashboard-stat {
+            padding: 18px;
+          }
+
+          .dashboard-stat-value {
+            font-size: 22px;
+          }
+
+          .dashboard-patient-row {
+            grid-template-columns: 1fr;
+          }
+
+          .dashboard-panel {
+            padding: 20px;
+            border-radius: 18px;
+          }
+
+          .dashboard-session-row {
+            align-items: flex-start;
+            flex-direction: column;
+          }
+
+          .dashboard-reminder-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .dashboard-reminder-item {
+            grid-template-columns:
+              auto
+              minmax(0, 1fr);
+          }
+
+          .dashboard-reminder-actions {
+            grid-column: 1 / -1;
+            justify-content: flex-start;
+          }
+
+          .dashboard-reminder-summary {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .memory-graph-stats {
+            grid-template-columns: 1fr 1fr;
+          }
+
+          .memory-graph-link {
+            grid-template-columns:
+              auto
+              minmax(0, 1fr);
+          }
+
+          .memory-graph-connector {
+            grid-column: 2;
+            text-align: left;
+          }
+
+          .memory-graph-fact-node {
+            grid-column: 2;
+            width: 100%;
+            box-sizing: border-box;
+          }
+
+          .memory-graph-branch {
+            grid-row: span 2;
+          }
+
+          .dashboard-error-actions {
+            flex-direction: column;
+          }
+        }
+
+        @media (max-width: 390px) {
+          .dashboard-page {
+            padding-left: 12px;
+            padding-right: 12px;
+          }
+
+          .dashboard-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .dashboard-stat {
+            padding: 17px;
+          }
+
+          .dashboard-title {
+            font-size: 32px;
+          }
+
+          .memory-graph-stats {
+            grid-template-columns: 1fr;
+          }
+        }
+      `;
+
 function Dashboard({
   onOpenMemoryVault,
   onOpenVoiceMemory,
@@ -577,938 +1475,48 @@ function Dashboard({
 
   if (loading) {
     return (
-      <div className="dashboard-page dashboard-centered-message">
-        Loading caregiver dashboard...
-      </div>
+      <>
+        <style>{DASHBOARD_STYLES}</style>
+        <div className="dashboard-page dashboard-centered-message">
+          Loading caregiver dashboard...
+        </div>
+      </>
     );
   }
 
   if (error) {
     return (
-      <div className="dashboard-page">
-        <div className="dashboard-error-card">
-          <h2>Something went wrong</h2>
+      <>
+        <style>{DASHBOARD_STYLES}</style>
+        <div className="dashboard-page">
+          <div className="dashboard-error-card">
+            <h2>Something went wrong</h2>
 
-          <p>{error}</p>
+            <p>{error}</p>
 
-          <div className="dashboard-error-actions">
-            <button
-              onClick={loadDashboard}
-            >
-              Try Again
-            </button>
+            <div className="dashboard-error-actions">
+              <button
+                onClick={loadDashboard}
+              >
+                Try Again
+              </button>
 
-            <button
-              className="secondary"
-              onClick={onLogout}
-            >
-              Log Out
-            </button>
+              <button
+                className="secondary"
+                onClick={onLogout}
+              >
+                Log Out
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
     <>
-      <style>{`
-        .dashboard-page {
-          min-height: 100vh;
-          background: #f8f5ef;
-          padding: 45px 7%;
-          box-sizing: border-box;
-          color: #28352f;
-          font-family: Arial, Helvetica, sans-serif;
-        }
-
-        .dashboard-container {
-          max-width: 1100px;
-          margin: 0 auto;
-        }
-
-        .dashboard-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 24px;
-          margin-bottom: 32px;
-        }
-
-        .dashboard-header-content {
-          min-width: 0;
-        }
-
-        .dashboard-label {
-          margin: 0 0 8px;
-          color: #57765f;
-          font-size: 14px;
-          font-weight: 700;
-          letter-spacing: 1px;
-        }
-
-        .dashboard-title {
-          margin: 0 0 10px;
-          color: #28352f;
-          font-size: 44px;
-          line-height: 1.1;
-        }
-
-        .dashboard-subtitle {
-          margin: 0;
-          max-width: 680px;
-          color: #66736b;
-          font-size: 18px;
-          line-height: 1.6;
-        }
-
-        .dashboard-logout {
-          border: 1px solid #bfccbf;
-          background: transparent;
-          color: #46634f;
-          padding: 11px 18px;
-          border-radius: 10px;
-          cursor: pointer;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .dashboard-grid {
-          display: grid;
-          grid-template-columns: repeat(
-            4,
-            minmax(0, 1fr)
-          );
-          gap: 16px;
-          margin-bottom: 25px;
-        }
-
-        .dashboard-stat,
-        .dashboard-panel {
-          background: #fffdf9;
-          border: 1px solid #e8e1d5;
-          border-radius: 20px;
-        }
-
-        .dashboard-stat {
-          padding: 22px;
-          min-width: 0;
-        }
-
-        .dashboard-stat-label,
-        .dashboard-session-label,
-        .dashboard-info-label,
-        .dashboard-reminder-summary-label {
-          margin: 0 0 7px;
-          color: #8a968e;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: .8px;
-        }
-
-        .dashboard-stat-value {
-          margin: 0;
-          color: #28352f;
-          font-size: 26px;
-          font-weight: 700;
-          overflow-wrap: anywhere;
-        }
-
-        .dashboard-main-grid {
-          display: grid;
-          grid-template-columns:
-            minmax(0, 1.05fr)
-            minmax(0, .95fr);
-          gap: 25px;
-          align-items: start;
-        }
-
-        .dashboard-panel {
-          padding: 28px;
-          min-width: 0;
-        }
-
-        .dashboard-panel + .dashboard-panel {
-          margin-top: 25px;
-        }
-
-        .dashboard-panel-title {
-          margin: 0 0 20px;
-          color: #28352f;
-          font-size: 22px;
-        }
-
-        .dashboard-patient-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 14px;
-        }
-
-        .dashboard-info-box,
-        .dashboard-session,
-        .dashboard-reminder-summary-box {
-          background: #f4f6f1;
-          border-radius: 14px;
-        }
-
-        .dashboard-info-box {
-          padding: 16px;
-          min-width: 0;
-        }
-
-        .dashboard-info-value,
-        .dashboard-session-value {
-          margin: 0;
-          color: #28352f;
-          font-size: 17px;
-          font-weight: 700;
-          overflow-wrap: anywhere;
-        }
-
-        .dashboard-activity {
-          margin-top: 25px;
-        }
-
-        .dashboard-subheading {
-          margin: 0 0 14px;
-          color: #28352f;
-          font-size: 18px;
-        }
-
-        .dashboard-activity-list,
-        .dashboard-reminder-list {
-          display: grid;
-          gap: 11px;
-        }
-
-        .dashboard-activity-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 12px;
-          background: #f8f6f1;
-          border-radius: 12px;
-          padding: 14px;
-        }
-
-        .dashboard-activity-icon,
-        .dashboard-reminder-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex: 0 0 auto;
-          border-radius: 10px;
-          background: #edf3ed;
-        }
-
-        .dashboard-activity-icon {
-          width: 34px;
-          height: 34px;
-        }
-
-        .dashboard-reminder-icon {
-          width: 38px;
-          height: 38px;
-          font-size: 20px;
-        }
-
-        .dashboard-activity-content,
-        .dashboard-reminder-content {
-          min-width: 0;
-        }
-
-        .dashboard-activity-title,
-        .dashboard-reminder-title {
-          margin: 0 0 4px;
-          color: #28352f;
-          font-weight: 700;
-          overflow-wrap: anywhere;
-        }
-
-        .dashboard-activity-text,
-        .dashboard-reminder-meta,
-        .dashboard-empty {
-          margin: 0;
-          color: #738078;
-          font-size: 14px;
-          line-height: 1.5;
-          overflow-wrap: anywhere;
-        }
-
-        .dashboard-session {
-          padding: 18px;
-        }
-
-        .dashboard-session-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 15px;
-        }
-
-        .dashboard-session-progress-value {
-          color: #57765f;
-          font-size: 24px;
-          font-weight: 700;
-        }
-
-        .dashboard-progress-bar {
-          width: 100%;
-          height: 10px;
-          margin-top: 15px;
-          border-radius: 999px;
-          background: #e4e9e3;
-          overflow: hidden;
-        }
-
-        .dashboard-progress-fill {
-          height: 100%;
-          border-radius: 999px;
-          background: #57765f;
-        }
-
-        /*
-         * Memory graph
-         */
-
-        .memory-graph-intro {
-          margin: -8px 0 20px;
-          color: #66736b;
-          line-height: 1.6;
-        }
-
-        .memory-graph-stats {
-          display: grid;
-          grid-template-columns:
-            repeat(3, minmax(0, 1fr));
-          gap: 10px;
-          margin-bottom: 18px;
-        }
-
-        .memory-graph-stat {
-          padding: 14px;
-          background: #f4f6f1;
-          border-radius: 12px;
-        }
-
-        .memory-graph-stat-label {
-          margin: 0 0 5px;
-          color: #8a968e;
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-        }
-
-        .memory-graph-stat-value {
-          margin: 0;
-          color: #28352f;
-          font-size: 20px;
-          font-weight: 700;
-        }
-
-        .memory-graph-visual {
-          padding: 18px;
-          border: 1px solid #e8e1d5;
-          border-radius: 18px;
-          background:
-            linear-gradient(
-              145deg,
-              #fbfaf7,
-              #f4f6f1
-            );
-        }
-
-        .memory-graph-visual-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 16px;
-          margin-bottom: 16px;
-        }
-
-        .memory-graph-visual-title {
-          margin: 0;
-          color: #28352f;
-          font-size: 16px;
-          font-weight: 700;
-        }
-
-        .memory-graph-visual-subtitle {
-          margin: 4px 0 0;
-          color: #738078;
-          font-size: 13px;
-          line-height: 1.5;
-        }
-
-        .memory-graph-legend {
-          display: flex;
-          gap: 6px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-        }
-
-        .memory-graph-legend-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 6px 9px;
-          border: 1px solid #e1e7df;
-          border-radius: 999px;
-          background: #ffffff;
-          color: #66736b;
-          font-size: 11px;
-          font-weight: 700;
-          white-space: nowrap;
-        }
-
-        .memory-graph-board {
-          display: grid;
-          grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-          gap: 12px;
-        }
-
-        .memory-graph-cluster {
-          min-width: 0;
-          padding: 14px;
-          border: 1px solid #e4e9e2;
-          border-radius: 14px;
-          background: rgba(
-            255,
-            253,
-            249,
-            .88
-          );
-        }
-
-        .memory-graph-memory-node {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          min-width: 0;
-          padding: 11px 12px;
-          border-radius: 12px;
-          background: #57765f;
-          color: #ffffff;
-          font-size: 14px;
-          font-weight: 700;
-          box-shadow:
-            0 7px 18px
-            rgba(
-              87,
-              118,
-              95,
-              .14
-            );
-        }
-
-        .memory-graph-memory-node
-          span:last-child {
-          min-width: 0;
-          overflow-wrap: anywhere;
-        }
-
-        .memory-graph-links {
-          display: grid;
-          gap: 8px;
-          margin-top: 11px;
-        }
-
-        .memory-graph-link {
-          display: grid;
-          grid-template-columns:
-            auto
-            minmax(72px, .55fr)
-            minmax(0, 1fr);
-          align-items: center;
-          gap: 8px;
-        }
-
-        .memory-graph-branch {
-          color: #b4c1b5;
-          font-size: 18px;
-          line-height: 1;
-        }
-
-        .memory-graph-connector {
-          color: #738078;
-          font-size: 10px;
-          font-weight: 700;
-          text-align: center;
-        }
-
-        .memory-graph-fact-node {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          min-width: 0;
-          padding: 7px 9px;
-          border-radius: 10px;
-          background: #f1eee6;
-          color: #6e664f;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .memory-graph-fact-node
-          span:last-child {
-          min-width: 0;
-          overflow-wrap: anywhere;
-        }
-
-        .memory-graph-connections {
-          display: grid;
-          gap: 10px;
-          margin-top: 16px;
-        }
-
-        .memory-graph-connections-title {
-          margin: 0;
-          color: #28352f;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        .memory-graph-connection {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
-          padding: 12px;
-          border-radius: 12px;
-          background: #f8f6f1;
-        }
-
-        .memory-graph-node {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 7px 10px;
-          border-radius: 999px;
-          background: #edf3ed;
-          color: #46634f;
-          font-size: 13px;
-          font-weight: 700;
-          max-width: 100%;
-        }
-
-        .memory-graph-node
-          span:last-child {
-          overflow-wrap: anywhere;
-        }
-
-        .memory-graph-arrow {
-          color: #8a968e;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        /*
-         * Reminders
-         */
-
-        .dashboard-reminder-summary {
-          display: grid;
-          grid-template-columns:
-            repeat(3, minmax(0, 1fr));
-          gap: 10px;
-          margin-bottom: 18px;
-        }
-
-        .dashboard-reminder-summary-box {
-          padding: 13px;
-        }
-
-        .dashboard-reminder-summary-value {
-          margin: 0;
-          color: #28352f;
-          font-size: 20px;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-alert {
-          display: flex;
-          gap: 10px;
-          padding: 13px 14px;
-          margin-bottom: 14px;
-          border-radius: 12px;
-          font-weight: 700;
-          line-height: 1.5;
-        }
-
-        .dashboard-reminder-alert.overdue {
-          background: #fbeceb;
-          color: #a05a45;
-          border: 1px solid #efcbc3;
-        }
-
-        .dashboard-reminder-alert.due-soon {
-          background: #fbf2df;
-          color: #946c2d;
-          border: 1px solid #ead7ae;
-        }
-
-        .dashboard-reminder-form {
-          display: grid;
-          gap: 12px;
-          margin-bottom: 22px;
-        }
-
-        .dashboard-reminder-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
-
-        .dashboard-reminder-field {
-          display: grid;
-          gap: 6px;
-        }
-
-        .dashboard-reminder-field label {
-          color: #66736b;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-field input,
-        .dashboard-reminder-field select,
-        .dashboard-reminder-field textarea {
-          width: 100%;
-          box-sizing: border-box;
-          border: 1px solid #d9dfd7;
-          border-radius: 10px;
-          background: #ffffff;
-          color: #28352f;
-          padding: 11px 12px;
-          font: inherit;
-        }
-
-        .dashboard-reminder-field textarea {
-          min-height: 74px;
-          resize: vertical;
-        }
-
-        .dashboard-reminder-submit,
-        .dashboard-error-actions button {
-          border: none;
-          border-radius: 10px;
-          background: #57765f;
-          color: #ffffff;
-          padding: 12px 16px;
-          cursor: pointer;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-item {
-          display: grid;
-          grid-template-columns:
-            auto
-            minmax(0, 1fr)
-            auto;
-          gap: 12px;
-          align-items: start;
-          padding: 14px;
-          border-radius: 12px;
-          background: #f8f6f1;
-        }
-
-        .dashboard-reminder-actions {
-          display: flex;
-          gap: 7px;
-          flex-wrap: wrap;
-          justify-content: flex-end;
-        }
-
-        .dashboard-reminder-action {
-          border: 1px solid #bfccbf;
-          border-radius: 9px;
-          background: transparent;
-          color: #46634f;
-          padding: 8px 10px;
-          cursor: pointer;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-action.complete {
-          border-color: #57765f;
-          background: #57765f;
-          color: #ffffff;
-        }
-
-        .dashboard-reminder-status {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          margin-top: 6px;
-          font-size: 12px;
-          font-weight: 700;
-        }
-
-        .dashboard-reminder-status.overdue {
-          color: #a05a45;
-        }
-
-        .dashboard-reminder-status.due-soon {
-          color: #946c2d;
-        }
-
-        .dashboard-reminder-status.scheduled,
-        .dashboard-reminder-status.completed {
-          color: #57765f;
-        }
-
-        .dashboard-reminder-completed {
-          opacity: .65;
-        }
-
-        .dashboard-reminder-error {
-          margin: 0 0 15px;
-          color: #a05a45;
-          font-weight: 700;
-          line-height: 1.5;
-        }
-
-        /*
-         * Quick actions
-         */
-
-        .dashboard-actions {
-          display: grid;
-          gap: 12px;
-        }
-
-        .dashboard-action-button {
-          width: 100%;
-          min-height: 52px;
-          border-radius: 12px;
-          padding: 14px 18px;
-          cursor: pointer;
-          font-weight: 700;
-          text-align: left;
-        }
-
-        .dashboard-primary-action {
-          border: none;
-          background: #57765f;
-          color: #ffffff;
-        }
-
-        .dashboard-secondary-action {
-          border: 1px solid #bfccbf;
-          background: transparent;
-          color: #46634f;
-        }
-
-        /*
-         * Loading and error
-         */
-
-        .memory-graph-loading {
-          color: #57765f;
-          font-weight: 700;
-        }
-
-        .memory-graph-error {
-          margin: 0;
-          color: #a05a45;
-          font-weight: 700;
-          line-height: 1.5;
-        }
-
-        .dashboard-centered-message {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: #57765f;
-          font-size: 18px;
-          font-weight: 700;
-        }
-
-        .dashboard-error-card {
-          max-width: 700px;
-          margin: 100px auto;
-          padding: 30px;
-          border: 1px solid #e8e1d5;
-          border-radius: 20px;
-          background: #fffdf9;
-          text-align: center;
-        }
-
-        .dashboard-error-card p {
-          color: #a05a45;
-          line-height: 1.6;
-        }
-
-        .dashboard-error-actions {
-          display: flex;
-          justify-content: center;
-          gap: 10px;
-        }
-
-        .dashboard-error-actions .secondary {
-          border: 1px solid #bfccbf;
-          background: transparent;
-          color: #46634f;
-        }
-
-        /*
-         * Responsive
-         */
-
-        @media (max-width: 900px) {
-          .dashboard-page {
-            padding: 40px 5%;
-          }
-
-          .dashboard-grid {
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0, 1fr)
-              );
-          }
-
-          .dashboard-main-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .memory-graph-board {
-            grid-template-columns: 1fr;
-          }
-
-          .memory-graph-visual-header {
-            flex-direction: column;
-          }
-
-          .memory-graph-legend {
-            justify-content: flex-start;
-          }
-        }
-
-        @media (max-width: 600px) {
-          .dashboard-page {
-            padding: 70px 16px 35px;
-          }
-
-          .dashboard-header {
-            flex-direction: column;
-            gap: 18px;
-          }
-
-          .dashboard-title {
-            font-size: 34px;
-          }
-
-          .dashboard-subtitle {
-            font-size: 16px;
-          }
-
-          .dashboard-logout {
-            width: 100%;
-          }
-
-          .dashboard-grid {
-            grid-template-columns:
-              1fr 1fr;
-            gap: 12px;
-          }
-
-          .dashboard-stat {
-            padding: 18px;
-          }
-
-          .dashboard-stat-value {
-            font-size: 22px;
-          }
-
-          .dashboard-patient-row {
-            grid-template-columns: 1fr;
-          }
-
-          .dashboard-panel {
-            padding: 20px;
-            border-radius: 18px;
-          }
-
-          .dashboard-session-row {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .dashboard-reminder-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .dashboard-reminder-item {
-            grid-template-columns:
-              auto
-              minmax(0, 1fr);
-          }
-
-          .dashboard-reminder-actions {
-            grid-column: 1 / -1;
-            justify-content: flex-start;
-          }
-
-          .dashboard-reminder-summary {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .memory-graph-stats {
-            grid-template-columns: 1fr 1fr;
-          }
-
-          .memory-graph-link {
-            grid-template-columns:
-              auto
-              minmax(0, 1fr);
-          }
-
-          .memory-graph-connector {
-            grid-column: 2;
-            text-align: left;
-          }
-
-          .memory-graph-fact-node {
-            grid-column: 2;
-            width: 100%;
-            box-sizing: border-box;
-          }
-
-          .memory-graph-branch {
-            grid-row: span 2;
-          }
-
-          .dashboard-error-actions {
-            flex-direction: column;
-          }
-        }
-
-        @media (max-width: 390px) {
-          .dashboard-page {
-            padding-left: 12px;
-            padding-right: 12px;
-          }
-
-          .dashboard-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .dashboard-stat {
-            padding: 17px;
-          }
-
-          .dashboard-title {
-            font-size: 32px;
-          }
-
-          .memory-graph-stats {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
+      <style>{DASHBOARD_STYLES}</style>
 
       <div className="dashboard-page">
         <div className="dashboard-container">
@@ -2086,7 +2094,7 @@ function Dashboard({
                       className="dashboard-activity-text"
                       style={{
                         marginTop: "10px",
-                        color: "#57765f",
+                        color: "#bd5b34",
                         fontWeight: "700",
                         textTransform:
                           "capitalize",

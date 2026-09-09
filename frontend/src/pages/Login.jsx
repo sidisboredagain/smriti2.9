@@ -52,20 +52,20 @@ function Login({ onLoginSuccess }) {
     <div
       style={{
         minHeight: "100vh",
-        background: "#f8f5ef",
+        background: "#faf5eb",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "40px 20px",
-        fontFamily: "Arial, Helvetica, sans-serif",
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif",
       }}
     >
       <div
         style={{
           width: "100%",
           maxWidth: "460px",
-          background: "#fffdf9",
-          border: "1px solid #e8e1d5",
+          background: "#fffcf6",
+          border: "1px solid #e6d9bf",
           borderRadius: "24px",
           padding: "40px",
           boxShadow: "0 18px 50px rgba(48, 59, 52, 0.08)",
@@ -73,7 +73,7 @@ function Login({ onLoginSuccess }) {
       >
         <p
           style={{
-            color: "#57765f",
+            color: "#bd5b34",
             fontWeight: "700",
             fontSize: "14px",
             letterSpacing: "1px",
@@ -85,7 +85,7 @@ function Login({ onLoginSuccess }) {
 
         <h1
           style={{
-            color: "#28352f",
+            color: "#2a2119",
             fontSize: "38px",
             margin: "0 0 10px",
           }}
@@ -95,7 +95,7 @@ function Login({ onLoginSuccess }) {
 
         <p
           style={{
-            color: "#66736b",
+            color: "#6e6153",
             lineHeight: "1.6",
             marginBottom: "30px",
           }}
@@ -107,7 +107,7 @@ function Login({ onLoginSuccess }) {
           <label
             style={{
               display: "block",
-              color: "#46634f",
+              color: "#9a4728",
               fontWeight: "600",
               marginBottom: "8px",
             }}
@@ -125,7 +125,7 @@ function Login({ onLoginSuccess }) {
               width: "100%",
               padding: "14px",
               marginBottom: "20px",
-              border: "1px solid #d9dfd8",
+              border: "1px solid #e6d9bf",
               borderRadius: "10px",
               fontSize: "16px",
               outline: "none",
@@ -135,7 +135,7 @@ function Login({ onLoginSuccess }) {
           <label
             style={{
               display: "block",
-              color: "#46634f",
+              color: "#9a4728",
               fontWeight: "600",
               marginBottom: "8px",
             }}
@@ -153,7 +153,7 @@ function Login({ onLoginSuccess }) {
               width: "100%",
               padding: "14px",
               marginBottom: "24px",
-              border: "1px solid #d9dfd8",
+              border: "1px solid #e6d9bf",
               borderRadius: "10px",
               fontSize: "16px",
               outline: "none",
@@ -168,7 +168,7 @@ function Login({ onLoginSuccess }) {
               padding: "15px",
               border: "none",
               borderRadius: "12px",
-              background: "#57765f",
+              background: "#bd5b34",
               color: "#ffffff",
               fontSize: "17px",
               fontWeight: "700",
@@ -183,7 +183,7 @@ function Login({ onLoginSuccess }) {
           <p
             style={{
               marginTop: "20px",
-              color: message.startsWith("✓") ? "#57765f" : "#a05a45",
+              color: message.startsWith("✓") ? "#2f7a4d" : "#b3261e",
               fontWeight: "700",
               textAlign: "center",
             }}

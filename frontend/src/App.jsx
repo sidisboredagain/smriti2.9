@@ -60,102 +60,102 @@ function App() {
 
         const themes = {
           blue: {
-            primary: "#5579a8",
-            primaryDark: "#45678f",
-            secondary: "#6d8fb8",
-            soft: "#edf3fb",
-            softBorder: "#d7e3f2",
-            softText: "#45678f",
-            logoBg: "#e1ebf7",
-            shadow: "rgba(85, 121, 168, 0.22)",
+            primary: "#3f6f93",
+            primaryDark: "#325a78",
+            secondary: "#2f4a3d",
+            soft: "#e9f0f6",
+            softBorder: "#cfe0ea",
+            softText: "#325a78",
+            logoBg: "#dbe8f0",
+            shadow: "rgba(63, 111, 147, 0.24)",
           },
 
           green: {
-            primary: "#57765f",
-            primaryDark: "#48664f",
-            secondary: "#6c8b73",
-            soft: "#edf3ed",
-            softBorder: "#d5e2d6",
-            softText: "#46634f",
-            logoBg: "#dfe9df",
-            shadow: "rgba(87, 118, 95, 0.2)",
+            primary: "#bd5b34",
+            primaryDark: "#9a4728",
+            secondary: "#2f4a3d",
+            soft: "#fbeee6",
+            softBorder: "#f0dbc8",
+            softText: "#9a4728",
+            logoBg: "#f3ddce",
+            shadow: "rgba(189, 91, 52, 0.28)",
           },
 
           purple: {
-            primary: "#78648f",
-            primaryDark: "#654f7a",
-            secondary: "#927ca8",
-            soft: "#f2eef6",
-            softBorder: "#e2d9ea",
-            softText: "#654f7a",
-            logoBg: "#e9e1ef",
-            shadow: "rgba(120, 100, 143, 0.2)",
+            primary: "#7a5a8f",
+            primaryDark: "#63477a",
+            secondary: "#2f4a3d",
+            soft: "#f1ebf5",
+            softBorder: "#ddccea",
+            softText: "#63477a",
+            logoBg: "#e6dced",
+            shadow: "rgba(122, 90, 143, 0.24)",
           },
 
           pink: {
-            primary: "#b46d83",
-            primaryDark: "#99566b",
-            secondary: "#c78499",
-            soft: "#faeef2",
-            softBorder: "#ecd7df",
-            softText: "#99566b",
-            logoBg: "#f3e1e7",
-            shadow: "rgba(180, 109, 131, 0.2)",
+            primary: "#b5605f",
+            primaryDark: "#954b4a",
+            secondary: "#2f4a3d",
+            soft: "#f8e9e8",
+            softBorder: "#ecd2d1",
+            softText: "#954b4a",
+            logoBg: "#f0dad9",
+            shadow: "rgba(181, 96, 95, 0.24)",
           },
 
           orange: {
-            primary: "#b9784f",
-            primaryDark: "#9d603d",
-            secondary: "#c58b65",
-            soft: "#faf0e9",
-            softBorder: "#ecdacd",
-            softText: "#9d603d",
-            logoBg: "#f3e2d6",
-            shadow: "rgba(185, 120, 79, 0.2)",
+            primary: "#c17a2e",
+            primaryDark: "#9c6224",
+            secondary: "#2f4a3d",
+            soft: "#faeedd",
+            softBorder: "#eeddbc",
+            softText: "#9c6224",
+            logoBg: "#f4e2c4",
+            shadow: "rgba(193, 122, 46, 0.26)",
           },
 
           yellow: {
             primary: "#a8873c",
             primaryDark: "#8d712f",
-            secondary: "#b99b51",
+            secondary: "#2f4a3d",
             soft: "#f8f2df",
             softBorder: "#eadfbd",
             softText: "#8d712f",
             logoBg: "#f1e8c9",
-            shadow: "rgba(168, 135, 60, 0.2)",
+            shadow: "rgba(168, 135, 60, 0.24)",
           },
 
           red: {
-            primary: "#a85d5d",
-            primaryDark: "#8e4949",
-            secondary: "#bb7474",
-            soft: "#faeeee",
-            softBorder: "#edd7d7",
-            softText: "#8e4949",
-            logoBg: "#f1dddd",
-            shadow: "rgba(168, 93, 93, 0.2)",
+            primary: "#af4a34",
+            primaryDark: "#8e3a28",
+            secondary: "#2f4a3d",
+            soft: "#f8e6e1",
+            softBorder: "#eccec5",
+            softText: "#8e3a28",
+            logoBg: "#f1d8cf",
+            shadow: "rgba(175, 74, 52, 0.26)",
           },
 
           teal: {
-            primary: "#4f7d7a",
-            primaryDark: "#416764",
-            secondary: "#679491",
-            soft: "#ebf4f3",
-            softBorder: "#d3e4e2",
-            softText: "#416764",
-            logoBg: "#dceae8",
-            shadow: "rgba(79, 125, 122, 0.2)",
+            primary: "#3f7a70",
+            primaryDark: "#33625a",
+            secondary: "#2f4a3d",
+            soft: "#e7f2ef",
+            softBorder: "#cde3dd",
+            softText: "#33625a",
+            logoBg: "#d9ece7",
+            shadow: "rgba(63, 122, 112, 0.24)",
           },
 
           brown: {
             primary: "#826b58",
             primaryDark: "#6c5747",
-            secondary: "#9a816b",
+            secondary: "#2f4a3d",
             soft: "#f4efe9",
             softBorder: "#e4dacf",
             softText: "#6c5747",
             logoBg: "#e9dfd3",
-            shadow: "rgba(130, 107, 88, 0.2)",
+            shadow: "rgba(130, 107, 88, 0.24)",
           },
         };
 
@@ -294,13 +294,24 @@ function App() {
             padding: "11px 16px",
             border: "1px solid var(--brand-primary)",
             borderRadius: "10px",
-            background: "#fffdf9",
+            background: "var(--surface, #fffcf6)",
             color: "var(--brand-soft-text)",
             fontSize: "14px",
             fontWeight: "700",
             cursor: "pointer",
             boxShadow:
-              "0 6px 16px rgba(48, 59, 52, 0.08)",
+              "0 6px 16px rgba(42, 33, 25, 0.08)",
+            transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-2px)";
+            e.currentTarget.style.boxShadow =
+              "0 10px 22px rgba(42, 33, 25, 0.12)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow =
+              "0 6px 16px rgba(42, 33, 25, 0.08)";
           }}
         >
           ← {backLabel}
@@ -423,7 +434,7 @@ function App() {
       </header>
 
       <main className="hero-section">
-        <div className="hero-content">
+        <div className="hero-content fade-up">
           <div className="badge">
             🧠 Personalized cognitive care
           </div>
@@ -470,7 +481,10 @@ function App() {
           </div>
         </div>
 
-        <div className="memory-card">
+        <div
+          className="memory-card fade-up"
+          style={{ animationDelay: "0.12s" }}
+        >
           <div className="memory-icon">
             🌸
           </div>
@@ -482,7 +496,7 @@ function App() {
           <h3>Family Wedding</h3>
 
           <p className="memory-text">
-            “A beautiful day with the whole family in Jaipur.”
+            "A beautiful day with the whole family in Jaipur."
           </p>
 
           <div className="memory-tags">
@@ -494,7 +508,7 @@ function App() {
       </main>
 
       <section className="features">
-        <div className="feature">
+        <div className="feature fade-up" style={{ animationDelay: "0.05s" }}>
           <div className="feature-icon">📖</div>
 
           <h3>Memory Vault</h3>
@@ -505,7 +519,7 @@ function App() {
           </p>
         </div>
 
-        <div className="feature">
+        <div className="feature fade-up" style={{ animationDelay: "0.15s" }}>
           <div className="feature-icon">🎯</div>
 
           <h3>Personalized Games</h3>
@@ -516,7 +530,7 @@ function App() {
           </p>
         </div>
 
-        <div className="feature">
+        <div className="feature fade-up" style={{ animationDelay: "0.25s" }}>
           <div className="feature-icon">👨‍👩‍👧</div>
 
           <h3>Caregiver Support</h3>

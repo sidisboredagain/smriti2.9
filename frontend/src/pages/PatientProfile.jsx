@@ -3,6 +3,221 @@ import { useEffect, useState } from "react";
 const API_URL = "http://127.0.0.1:8000";
 const PATIENT_ID = 1;
 
+const PATIENT_PROFILE_STYLES = `
+        .patient-profile-page {
+          min-height: 100vh;
+          background: #faf5eb;
+          padding: 96px 7% 50px;
+          box-sizing: border-box;
+          color: #2a2119;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+
+        .patient-profile-container {
+          max-width: 900px;
+          margin: 0 auto;
+        }
+
+        .patient-profile-header {
+          margin-bottom: 28px;
+        }
+
+        .patient-profile-label {
+          margin: 0 0 8px;
+          color: #bd5b34;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 1px;
+        }
+
+        .patient-profile-title {
+          margin: 0 0 10px;
+          color: #2a2119;
+          font-size: 42px;
+          line-height: 1.15;
+        }
+
+        .patient-profile-subtitle {
+          margin: 0;
+          max-width: 720px;
+          color: #6e6153;
+          font-size: 17px;
+          line-height: 1.6;
+        }
+
+        .patient-profile-card {
+          background: #fffcf6;
+          border: 1px solid #e6d9bf;
+          border-radius: 22px;
+          padding: 30px;
+          box-sizing: border-box;
+          box-shadow: 0 10px 30px rgba(48, 59, 52, 0.05);
+        }
+
+        .patient-profile-section {
+          margin-bottom: 28px;
+        }
+
+        .patient-profile-section:last-of-type {
+          margin-bottom: 0;
+        }
+
+        .patient-profile-section-title {
+          margin: 0 0 6px;
+          color: #2a2119;
+          font-size: 20px;
+        }
+
+        .patient-profile-section-description {
+          margin: 0 0 18px;
+          color: #948572;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .patient-profile-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .patient-profile-field {
+          display: grid;
+          gap: 7px;
+        }
+
+        .patient-profile-field.full {
+          grid-column: 1 / -1;
+        }
+
+        .patient-profile-field label {
+          color: #6e6153;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .patient-profile-field input,
+        .patient-profile-field textarea,
+        .patient-profile-field select {
+          width: 100%;
+          box-sizing: border-box;
+          border: 1px solid #e6d9bf;
+          border-radius: 12px;
+          background: #ffffff;
+          color: #2a2119;
+          padding: 12px 13px;
+          font: inherit;
+          outline: none;
+        }
+
+        .patient-profile-field input:focus,
+        .patient-profile-field textarea:focus,
+        .patient-profile-field select:focus {
+          border-color: #bd5b34;
+          box-shadow: 0 0 0 3px rgba(87, 118, 95, 0.1);
+        }
+
+        .patient-profile-field textarea {
+          min-height: 100px;
+          resize: vertical;
+        }
+
+        .patient-profile-help {
+          margin: 7px 0 0;
+          color: #948572;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+
+        .patient-profile-save-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 15px;
+          margin-top: 28px;
+          padding-top: 22px;
+          border-top: 1px solid #efe6d3;
+        }
+
+        .patient-profile-message {
+          color: #2f7a4d;
+          font-weight: 700;
+        }
+
+        .patient-profile-error {
+          max-width: 700px;
+          margin: 80px auto;
+          padding: 30px;
+          background: #fffcf6;
+          border: 1px solid #e6d9bf;
+          border-radius: 20px;
+          text-align: center;
+        }
+
+        .patient-profile-error h2 {
+          margin: 0 0 10px;
+        }
+
+        .patient-profile-error p {
+          margin: 0;
+          color: #b3261e;
+          line-height: 1.6;
+        }
+
+        .patient-profile-submit {
+          min-width: 190px;
+          border: none;
+          border-radius: 12px;
+          background: #bd5b34;
+          color: #ffffff;
+          padding: 13px 18px;
+          cursor: pointer;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        .patient-profile-submit:disabled {
+          opacity: 0.65;
+          cursor: not-allowed;
+        }
+
+        @media (max-width: 700px) {
+          .patient-profile-page {
+            padding: 75px 16px 30px;
+          }
+
+          .patient-profile-title {
+            font-size: 34px;
+          }
+
+          .patient-profile-subtitle {
+            font-size: 16px;
+          }
+
+          .patient-profile-card {
+            padding: 20px;
+            border-radius: 18px;
+          }
+
+          .patient-profile-grid {
+            grid-template-columns: 1fr;
+          }
+
+          .patient-profile-field.full {
+            grid-column: auto;
+          }
+
+          .patient-profile-save-row {
+            align-items: stretch;
+            flex-direction: column;
+          }
+
+          .patient-profile-submit {
+            width: 100%;
+          }
+        }
+      `;
+
 function PatientProfile() {
   const [patient, setPatient] = useState(null);
   const [form, setForm] = useState({
@@ -160,241 +375,34 @@ function PatientProfile() {
 
   if (loading) {
     return (
-      <div className="patient-profile-page">
-        <div className="patient-profile-message">
-          Loading patient profile...
+      <>
+        <style>{PATIENT_PROFILE_STYLES}</style>
+        <div className="patient-profile-page">
+          <div className="patient-profile-message">
+            Loading patient profile...
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (error && !patient) {
     return (
-      <div className="patient-profile-page">
-        <div className="patient-profile-error">
-          <h2>Unable to load profile</h2>
-          <p>{error}</p>
+      <>
+        <style>{PATIENT_PROFILE_STYLES}</style>
+        <div className="patient-profile-page">
+          <div className="patient-profile-error">
+            <h2>Unable to load profile</h2>
+            <p>{error}</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
     <>
-      <style>{`
-        .patient-profile-page {
-          min-height: 100vh;
-          background: #f8f5ef;
-          padding: 50px 7%;
-          box-sizing: border-box;
-          color: #28352f;
-          font-family: Arial, Helvetica, sans-serif;
-        }
-
-        .patient-profile-container {
-          max-width: 900px;
-          margin: 0 auto;
-        }
-
-        .patient-profile-header {
-          margin-bottom: 28px;
-        }
-
-        .patient-profile-label {
-          margin: 0 0 8px;
-          color: #57765f;
-          font-size: 13px;
-          font-weight: 700;
-          letter-spacing: 1px;
-        }
-
-        .patient-profile-title {
-          margin: 0 0 10px;
-          color: #28352f;
-          font-size: 42px;
-          line-height: 1.15;
-        }
-
-        .patient-profile-subtitle {
-          margin: 0;
-          max-width: 720px;
-          color: #66736b;
-          font-size: 17px;
-          line-height: 1.6;
-        }
-
-        .patient-profile-card {
-          background: #fffdf9;
-          border: 1px solid #e8e1d5;
-          border-radius: 22px;
-          padding: 30px;
-          box-sizing: border-box;
-          box-shadow: 0 10px 30px rgba(48, 59, 52, 0.05);
-        }
-
-        .patient-profile-section {
-          margin-bottom: 28px;
-        }
-
-        .patient-profile-section:last-of-type {
-          margin-bottom: 0;
-        }
-
-        .patient-profile-section-title {
-          margin: 0 0 6px;
-          color: #28352f;
-          font-size: 20px;
-        }
-
-        .patient-profile-section-description {
-          margin: 0 0 18px;
-          color: #738078;
-          font-size: 14px;
-          line-height: 1.5;
-        }
-
-        .patient-profile-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 16px;
-        }
-
-        .patient-profile-field {
-          display: grid;
-          gap: 7px;
-        }
-
-        .patient-profile-field.full {
-          grid-column: 1 / -1;
-        }
-
-        .patient-profile-field label {
-          color: #66736b;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        .patient-profile-field input,
-        .patient-profile-field textarea,
-        .patient-profile-field select {
-          width: 100%;
-          box-sizing: border-box;
-          border: 1px solid #d9dfd7;
-          border-radius: 12px;
-          background: #ffffff;
-          color: #28352f;
-          padding: 12px 13px;
-          font: inherit;
-          outline: none;
-        }
-
-        .patient-profile-field input:focus,
-        .patient-profile-field textarea:focus,
-        .patient-profile-field select:focus {
-          border-color: #57765f;
-          box-shadow: 0 0 0 3px rgba(87, 118, 95, 0.1);
-        }
-
-        .patient-profile-field textarea {
-          min-height: 100px;
-          resize: vertical;
-        }
-
-        .patient-profile-help {
-          margin: 7px 0 0;
-          color: #8a968e;
-          font-size: 12px;
-          line-height: 1.5;
-        }
-
-        .patient-profile-save-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 15px;
-          margin-top: 28px;
-          padding-top: 22px;
-          border-top: 1px solid #eee8de;
-        }
-
-        .patient-profile-message {
-          color: #57765f;
-          font-weight: 700;
-        }
-
-        .patient-profile-error {
-          max-width: 700px;
-          margin: 80px auto;
-          padding: 30px;
-          background: #fffdf9;
-          border: 1px solid #e8e1d5;
-          border-radius: 20px;
-          text-align: center;
-        }
-
-        .patient-profile-error h2 {
-          margin: 0 0 10px;
-        }
-
-        .patient-profile-error p {
-          margin: 0;
-          color: #a05a45;
-          line-height: 1.6;
-        }
-
-        .patient-profile-submit {
-          min-width: 190px;
-          border: none;
-          border-radius: 12px;
-          background: #57765f;
-          color: #ffffff;
-          padding: 13px 18px;
-          cursor: pointer;
-          font-size: 14px;
-          font-weight: 700;
-        }
-
-        .patient-profile-submit:disabled {
-          opacity: 0.65;
-          cursor: not-allowed;
-        }
-
-        @media (max-width: 700px) {
-          .patient-profile-page {
-            padding: 75px 16px 30px;
-          }
-
-          .patient-profile-title {
-            font-size: 34px;
-          }
-
-          .patient-profile-subtitle {
-            font-size: 16px;
-          }
-
-          .patient-profile-card {
-            padding: 20px;
-            border-radius: 18px;
-          }
-
-          .patient-profile-grid {
-            grid-template-columns: 1fr;
-          }
-
-          .patient-profile-field.full {
-            grid-column: auto;
-          }
-
-          .patient-profile-save-row {
-            align-items: stretch;
-            flex-direction: column;
-          }
-
-          .patient-profile-submit {
-            width: 100%;
-          }
-        }
-      `}</style>
+      <style>{PATIENT_PROFILE_STYLES}</style>
 
       <div className="patient-profile-page">
         <div className="patient-profile-container">
@@ -613,7 +621,7 @@ function PatientProfile() {
               <p
                 style={{
                   margin: "20px 0 0",
-                  color: "#a05a45",
+                  color: "#b3261e",
                   fontWeight: "700",
                   lineHeight: 1.5,
                 }}
