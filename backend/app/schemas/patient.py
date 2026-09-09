@@ -15,6 +15,7 @@ class PatientCreate(BaseModel):
     favorite_food: Optional[str] = None
     favorite_place: Optional[str] = None
     comfort_memory: Optional[str] = None
+    comfort_memory_id: Optional[int] = None
 
 
 class PatientUpdate(BaseModel):
@@ -29,6 +30,7 @@ class PatientUpdate(BaseModel):
     favorite_food: Optional[str] = None
     favorite_place: Optional[str] = None
     comfort_memory: Optional[str] = None
+    comfort_memory_id: Optional[int] = None
 
 
 class PatientResponse(BaseModel):
@@ -44,6 +46,7 @@ class PatientResponse(BaseModel):
     favorite_food: Optional[str] = None
     favorite_place: Optional[str] = None
     comfort_memory: Optional[str] = None
+    comfort_memory_id: Optional[int] = None
 
     class Config:
         from_attributes = True

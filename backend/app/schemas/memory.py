@@ -26,6 +26,8 @@ class MemoryResponse(BaseModel):
     title: str
     content: str
     category: str | None = None
+    image_url: str | None = None
+    audio_url: str | None = None
     sequence_steps: list[str] | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None

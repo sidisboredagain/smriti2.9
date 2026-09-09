@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   AlertCircle,
   ArrowRight,
   Brain,
+  Camera,
   CheckCircle2,
   Globe,
   Handshake,
@@ -13,6 +14,7 @@ import {
   Users,
   UtensilsCrossed,
   Luggage,
+  Volume2,
 } from "lucide-react";
 
 import { Alert } from "../components/ui/alert";
@@ -39,6 +41,10 @@ function MemoryVault() {
   const [games, setGames] = useState({});
   const [gameLoading, setGameLoading] = useState(null);
   const [gameMessages, setGameMessages] = useState({});
+
+  const [photoUploading, setPhotoUploading] = useState(null);
+  const [photoMessages, setPhotoMessages] = useState({});
+  const photoInputRefs = useRef({});
 
   const [language, setLanguage] = useState("English");
   const [loadingLanguage, setLoadingLanguage] = useState(true);
@@ -312,6 +318,56 @@ function MemoryVault() {
       }));
 
       handleAuthError(error);
+    }
+  };
+
+  const uploadMemoryPhoto = async (memoryId, file) => {
+    if (!file) {
+      return;
+    }
+
+    setPhotoUploading(memoryId);
+
+    setPhotoMessages((current) => ({
+      ...current,
+      [memoryId]: "",
+    }));
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(
+        `${API_URL}/memories/${memoryId}/photo`,
+        {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.detail || "Could not save the photo."
+        );
+      }
+
+      setMemories((current) =>
+        current.map((memory) =>
+          memory.id === memoryId ? data : memory
+        )
+      );
+    } catch (error) {
+      setPhotoMessages((current) => ({
+        ...current,
+        [memoryId]: error.message,
+      }));
+
+      handleAuthError(error);
+    } finally {
+      setPhotoUploading(null);
     }
   };
 
@@ -651,9 +707,76 @@ function MemoryVault() {
                         {memory.title}
                       </h3>
 
-                      <p className="mb-4 text-[15px] leading-[1.65] break-words text-muted-foreground">
+                      {memory.image_url && (
+                        <img
+                          src={`${API_URL}${memory.image_url}`}
+                          alt={memory.title}
+                          className="mb-3 h-[160px] w-full rounded-lg border border-border object-cover"
+                        />
+                      )}
+
+                      <p className="mb-3 text-[15px] leading-[1.65] break-words text-muted-foreground">
                         {getMemoryPreview(memory.content)}
                       </p>
+
+                      <div className="mb-4 flex flex-wrap items-center gap-2.5">
+                        <input
+                          ref={(element) => {
+                            photoInputRefs.current[memory.id] = element;
+                          }}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            uploadMemoryPhoto(memory.id, file);
+                            event.target.value = "";
+                          }}
+                        />
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={photoUploading === memory.id}
+                          onClick={() =>
+                            photoInputRefs.current[memory.id]?.click()
+                          }
+                        >
+                          <Camera className="h-4 w-4" aria-hidden="true" />
+                          {photoUploading === memory.id
+                            ? "Uploading photo..."
+                            : memory.image_url
+                            ? "Change photo"
+                            : "Add a photo"}
+                        </Button>
+
+                        {memory.audio_url && (
+                          <audio
+                            controls
+                            src={`${API_URL}${memory.audio_url}`}
+                            className="h-9 max-w-[220px]"
+                          >
+                            <Volume2
+                              className="h-4 w-4"
+                              aria-hidden="true"
+                            />
+                          </audio>
+                        )}
+                      </div>
+
+                      {photoMessages[memory.id] && (
+                        <Alert
+                          variant="destructive"
+                          className="mb-4"
+                        >
+                          <AlertCircle
+                            className="h-5 w-5 shrink-0"
+                            aria-hidden="true"
+                          />
+                          <span>{photoMessages[memory.id]}</span>
+                        </Alert>
+                      )}
 
                       {!game && (
                         <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">

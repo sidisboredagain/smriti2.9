@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+import os
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -7,12 +9,16 @@ from app.models.user import User
 from app.schemas.memory import MemoryCreate, MemoryUpdate, MemoryResponse
 from app.services.memory_graph import build_patient_memory_graph
 from app.utils.roles import require_doctor_or_caregiver
+from app.utils.uploads import save_upload
 
 
 router = APIRouter(
     prefix="/memories",
     tags=["Memories"]
 )
+
+
+ALLOWED_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 
 @router.post("/", response_model=MemoryResponse)
@@ -61,6 +67,59 @@ def get_memories(
         )
 
     return query.offset(skip).limit(limit).all()
+
+
+@router.post("/{memory_id}/photo", response_model=MemoryResponse)
+async def upload_memory_photo(
+    memory_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_doctor_or_caregiver),
+):
+    memory = (
+        db.query(Memory)
+        .filter(Memory.id == memory_id)
+        .first()
+    )
+
+    if memory is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Memory not found"
+        )
+
+    if not file.filename:
+        raise HTTPException(
+            status_code=400,
+            detail="Photo file is required."
+        )
+
+    extension = os.path.splitext(file.filename)[1].lower()
+
+    if extension not in ALLOWED_PHOTO_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported photo format. Use JPG, PNG, WEBP, or GIF."
+        )
+
+    photo_bytes = await file.read()
+
+    if not photo_bytes:
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded photo file is empty."
+        )
+
+    memory.image_url = save_upload(
+        photo_bytes,
+        subfolder="memories",
+        extension=extension,
+    )
+
+    db.commit()
+    db.refresh(memory)
+
+    return memory
 
 
 @router.get("/graph/{patient_id}")

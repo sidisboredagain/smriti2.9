@@ -4,3 +4,4 @@ __pycache__/
 *.db
 check_db.py
 .env
+uploads/

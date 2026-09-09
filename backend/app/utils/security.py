@@ -5,7 +5,13 @@ from passlib.context import CryptContext
 
 SECRET_KEY = "your-secret-key-change-this"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+# The patient-facing app expects a caregiver to sign in on a shared tablet
+# once and leave it running for the rest of the day (a patient with
+# dementia should never be asked to log in). A short-lived token would
+# silently break every request once it expired mid-session, so this stays
+# generous rather than the usual tight web-session default.
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],

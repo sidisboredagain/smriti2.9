@@ -1,5 +1,8 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.database.database import engine
 from app.database.base import Base
@@ -50,6 +53,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Serves the memory photos and voice recordings saved by
+# app/utils/uploads.py (e.g. GET /uploads/memories/<uuid>.jpg).
+UPLOADS_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "uploads"
+)
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 
 app.include_router(memories_router)

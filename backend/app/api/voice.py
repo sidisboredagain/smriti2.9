@@ -13,6 +13,7 @@ from app.models.patients import Patient
 from app.models.user import User
 from app.schemas.memory import MemoryResponse
 from app.utils.roles import require_doctor_or_caregiver
+from app.utils.uploads import save_upload
 
 router = APIRouter(
     prefix="/voice",
@@ -30,10 +31,26 @@ LANGUAGE_CODES = {
 
 def get_ffmpeg_path() -> str | None:
     """
-    Find FFmpeg from PATH.
+    Find FFmpeg from PATH, falling back to the portable binary bundled by
+    imageio-ffmpeg. Browsers only reliably record audio/webm, and
+    SpeechRecognition can only read WAV/AIFF/FLAC, so some form of FFmpeg
+    is a genuine requirement here, not an accident of this implementation.
+    Requiring a caregiver to manually install FFmpeg and edit their PATH
+    isn't realistic for a hackathon demo machine, so we fall back to the
+    pip-installed static binary instead.
     """
 
-    return shutil.which("ffmpeg")
+    on_path = shutil.which("ffmpeg")
+
+    if on_path:
+        return on_path
+
+    try:
+        import imageio_ffmpeg
+
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return None
 
 
 def transcribe_audio_file(
@@ -248,11 +265,21 @@ async def transcribe_and_save_memory(
         language=language
     )
 
+    # Keep the original recording, not just its transcript, so the patient
+    # app (and the caregiver's Memory Vault) can play back the real voice
+    # memory rather than only ever showing text.
+    audio_url = save_upload(
+        audio_bytes,
+        subfolder="voice",
+        extension=extension,
+    )
+
     new_memory = Memory(
         patient_id=patient_id,
         title="Voice Memory",
         content=text,
-        category="voice"
+        category="voice",
+        audio_url=audio_url,
     )
 
     db.add(new_memory)

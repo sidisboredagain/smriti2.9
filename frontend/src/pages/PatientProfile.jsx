@@ -27,7 +27,10 @@ function PatientProfile() {
     favorite_food: "",
     favorite_place: "",
     comfort_memory: "",
+    comfort_memory_id: "",
   });
+
+  const [memories, setMemories] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -85,6 +88,7 @@ function PatientProfile() {
           favorite_food: data.favorite_food || "",
           favorite_place: data.favorite_place || "",
           comfort_memory: data.comfort_memory || "",
+          comfort_memory_id: data.comfort_memory_id ?? "",
         });
 
         savedFavoriteColorRef.current = data.favorite_color || "";
@@ -96,7 +100,28 @@ function PatientProfile() {
       }
     };
 
+    const loadMemories = async () => {
+      try {
+        const response = await fetch(
+          `${API_URL}/memories/?patient_id=${PATIENT_ID}&limit=100`,
+          {
+            headers: getAuthHeaders(),
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+          setMemories(Array.isArray(data) ? data : []);
+        }
+      } catch {
+        // The comfort-memory picker just stays empty if this fails; it
+        // isn't required to load or save the rest of the profile.
+      }
+    };
+
     loadPatient();
+    loadMemories();
   }, []);
 
   // If the caregiver leaves this page with an unsaved favorite-color
@@ -154,6 +179,9 @@ function PatientProfile() {
               form.favorite_place.trim() || null,
             comfort_memory:
               form.comfort_memory.trim() || null,
+            comfort_memory_id: form.comfort_memory_id
+              ? Number(form.comfort_memory_id)
+              : null,
           }),
         }
       );
@@ -179,6 +207,7 @@ function PatientProfile() {
         favorite_food: data.favorite_food || "",
         favorite_place: data.favorite_place || "",
         comfort_memory: data.comfort_memory || "",
+        comfort_memory_id: data.comfort_memory_id ?? "",
       });
 
       savedFavoriteColorRef.current = data.favorite_color || "";
@@ -404,7 +433,7 @@ function PatientProfile() {
                 repeated difficulty.
               </p>
 
-              <div>
+              <div className="mb-4">
                 <Label htmlFor="comfort_memory">Familiar Memory</Label>
 
                 <Textarea
@@ -417,6 +446,33 @@ function PatientProfile() {
 
                 <p className="mt-2 text-xs leading-relaxed text-faint">
                   Keep this warm, familiar, and easy to recognize.
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="comfort_memory_id">
+                  Link to a saved memory (optional)
+                </Label>
+
+                <select
+                  id="comfort_memory_id"
+                  name="comfort_memory_id"
+                  className={selectClassName}
+                  value={form.comfort_memory_id}
+                  onChange={handleChange}
+                >
+                  <option value="">No linked memory</option>
+
+                  {memories.map((memory) => (
+                    <option key={memory.id} value={memory.id}>
+                      {memory.title}
+                    </option>
+                  ))}
+                </select>
+
+                <p className="mt-2 text-xs leading-relaxed text-faint">
+                  When a memory is linked, its photo and recording (if
+                  any) can be shown too, not just this description.
                 </p>
               </div>
             </section>
