@@ -1,12 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Alert } from "../components/ui/alert";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input, Label, Textarea } from "../components/ui/input";
+import { applyPatientTheme } from "../lib/theme";
 
 const API_URL = "http://127.0.0.1:8000";
 const PATIENT_ID = 1;
+
+const selectClassName =
+  "flex h-[52px] w-full rounded-xl border border-input bg-card px-4 py-3 text-base text-foreground transition-colors outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50";
+
+const LANGUAGE_OPTIONS = ["English", "Hindi", "Bengali", "Assamese"];
 
 function PatientProfile() {
   const [patient, setPatient] = useState(null);
@@ -27,6 +33,10 @@ function PatientProfile() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+
+  // Tracks the last-SAVED favorite color so the live color preview can be
+  // reverted if the caregiver navigates away without saving.
+  const savedFavoriteColorRef = useRef("");
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("smriti_token");
@@ -76,6 +86,9 @@ function PatientProfile() {
           favorite_place: data.favorite_place || "",
           comfort_memory: data.comfort_memory || "",
         });
+
+        savedFavoriteColorRef.current = data.favorite_color || "";
+        applyPatientTheme(data.favorite_color);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -86,6 +99,15 @@ function PatientProfile() {
     loadPatient();
   }, []);
 
+  // If the caregiver leaves this page with an unsaved favorite-color
+  // preview still applied, revert the app back to the last-saved theme
+  // rather than leaving the preview color leaked into the rest of the app.
+  useEffect(() => {
+    return () => {
+      applyPatientTheme(savedFavoriteColorRef.current);
+    };
+  }, []);
+
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -93,6 +115,10 @@ function PatientProfile() {
       ...current,
       [name]: value,
     }));
+
+    if (name === "favorite_color") {
+      applyPatientTheme(value);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -154,6 +180,9 @@ function PatientProfile() {
         favorite_place: data.favorite_place || "",
         comfort_memory: data.comfort_memory || "",
       });
+
+      savedFavoriteColorRef.current = data.favorite_color || "";
+      applyPatientTheme(data.favorite_color);
 
       setMessage("✓ Patient preferences saved successfully.");
     } catch (err) {
@@ -247,14 +276,21 @@ function PatientProfile() {
                 <div>
                   <Label htmlFor="language">Preferred Language</Label>
 
-                  <Input
+                  <select
                     id="language"
                     name="language"
-                    type="text"
-                    placeholder="e.g. Hindi"
+                    className={selectClassName}
                     value={form.language}
                     onChange={handleChange}
-                  />
+                  >
+                    <option value="">Select a language</option>
+
+                    {LANGUAGE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -293,6 +329,12 @@ function PatientProfile() {
                     value={form.favorite_color}
                     onChange={handleChange}
                   />
+
+                  <p className="mt-2 text-xs leading-relaxed text-faint">
+                    The app&apos;s colors update automatically as you
+                    type — try Blue, Green, Purple, Pink, Orange,
+                    Yellow, Red, Teal, or Brown.
+                  </p>
                 </div>
 
                 <div>

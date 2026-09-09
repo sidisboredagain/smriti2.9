@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
+  BookOpen,
   Brain,
   Clock,
   Eye,
@@ -774,16 +775,10 @@ function Therapy() {
         {session && !isSessionComplete && currentGame && (
           <Card className="mt-10 rounded-xl p-6 sm:p-9">
             <div className="mb-6 flex flex-col items-start justify-between gap-5 sm:flex-row">
-              <div>
-                <p className="mb-2.5 text-[13px] font-bold uppercase tracking-wider text-faint">
-                  Question {currentIndex + 1} of{" "}
-                  {games.length}
-                </p>
-
-                <p className="text-sm font-bold text-primary">
-                  Memory: {currentGame.memory_title}
-                </p>
-              </div>
+              <p className="text-[13px] font-bold uppercase tracking-wider text-faint">
+                Question {currentIndex + 1} of{" "}
+                {games.length}
+              </p>
 
               <div className="whitespace-nowrap text-sm font-bold text-primary">
                 {sessionCompletedGames} /{" "}
@@ -821,6 +816,23 @@ function Therapy() {
                 <Zap className="h-3.5 w-3.5" aria-hidden="true" />
                 {getDifficultyLabel(currentGame.difficulty)}
               </Badge>
+            </div>
+
+            <div className="mb-5 flex items-start gap-3 rounded-xl border-2 border-accent-border bg-accent p-4 sm:p-5">
+              <BookOpen
+                className="mt-0.5 h-6 w-6 shrink-0 text-primary"
+                aria-hidden="true"
+              />
+
+              <div className="min-w-0">
+                <p className="mb-1 text-xs font-bold uppercase tracking-wider text-primary">
+                  This question is about the memory:
+                </p>
+
+                <p className="text-lg font-bold leading-snug text-foreground [overflow-wrap:anywhere] sm:text-xl">
+                  {currentGame.memory_title}
+                </p>
+              </div>
             </div>
 
             <h2 className="mb-4 text-2xl leading-snug text-foreground [overflow-wrap:anywhere] sm:text-[1.875rem]">

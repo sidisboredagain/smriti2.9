@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import MemoryVault from "./pages/MemoryVault";
 import VoiceMemory from "./pages/VoiceMemory";
 import PatientProfile from "./pages/PatientProfile";
+import { applyPatientTheme } from "./lib/theme";
 
 const API_URL = "http://127.0.0.1:8000";
 const PATIENT_ID = 1;
@@ -57,156 +58,8 @@ function App() {
         }
 
         const patient = await response.json();
-        const favoriteColor = String(
-          patient.favorite_color || ""
-        )
-          .trim()
-          .toLowerCase();
 
-        const themes = {
-          blue: {
-            primary: "#3f6f93",
-            primaryDark: "#325a78",
-            secondary: "#2f4a3d",
-            soft: "#e9f0f6",
-            softBorder: "#cfe0ea",
-            softText: "#325a78",
-            logoBg: "#dbe8f0",
-            shadow: "rgba(63, 111, 147, 0.24)",
-          },
-
-          green: {
-            primary: "#bd5b34",
-            primaryDark: "#9a4728",
-            secondary: "#2f4a3d",
-            soft: "#fbeee6",
-            softBorder: "#f0dbc8",
-            softText: "#9a4728",
-            logoBg: "#f3ddce",
-            shadow: "rgba(189, 91, 52, 0.28)",
-          },
-
-          purple: {
-            primary: "#7a5a8f",
-            primaryDark: "#63477a",
-            secondary: "#2f4a3d",
-            soft: "#f1ebf5",
-            softBorder: "#ddccea",
-            softText: "#63477a",
-            logoBg: "#e6dced",
-            shadow: "rgba(122, 90, 143, 0.24)",
-          },
-
-          pink: {
-            primary: "#b5605f",
-            primaryDark: "#954b4a",
-            secondary: "#2f4a3d",
-            soft: "#f8e9e8",
-            softBorder: "#ecd2d1",
-            softText: "#954b4a",
-            logoBg: "#f0dad9",
-            shadow: "rgba(181, 96, 95, 0.24)",
-          },
-
-          orange: {
-            primary: "#c17a2e",
-            primaryDark: "#9c6224",
-            secondary: "#2f4a3d",
-            soft: "#faeedd",
-            softBorder: "#eeddbc",
-            softText: "#9c6224",
-            logoBg: "#f4e2c4",
-            shadow: "rgba(193, 122, 46, 0.26)",
-          },
-
-          yellow: {
-            primary: "#a8873c",
-            primaryDark: "#8d712f",
-            secondary: "#2f4a3d",
-            soft: "#f8f2df",
-            softBorder: "#eadfbd",
-            softText: "#8d712f",
-            logoBg: "#f1e8c9",
-            shadow: "rgba(168, 135, 60, 0.24)",
-          },
-
-          red: {
-            primary: "#af4a34",
-            primaryDark: "#8e3a28",
-            secondary: "#2f4a3d",
-            soft: "#f8e6e1",
-            softBorder: "#eccec5",
-            softText: "#8e3a28",
-            logoBg: "#f1d8cf",
-            shadow: "rgba(175, 74, 52, 0.26)",
-          },
-
-          teal: {
-            primary: "#3f7a70",
-            primaryDark: "#33625a",
-            secondary: "#2f4a3d",
-            soft: "#e7f2ef",
-            softBorder: "#cde3dd",
-            softText: "#33625a",
-            logoBg: "#d9ece7",
-            shadow: "rgba(63, 122, 112, 0.24)",
-          },
-
-          brown: {
-            primary: "#826b58",
-            primaryDark: "#6c5747",
-            secondary: "#2f4a3d",
-            soft: "#f4efe9",
-            softBorder: "#e4dacf",
-            softText: "#6c5747",
-            logoBg: "#e9dfd3",
-            shadow: "rgba(130, 107, 88, 0.24)",
-          },
-        };
-
-        const theme = themes[favoriteColor] || themes.green;
-
-        const root = document.documentElement;
-
-        root.style.setProperty(
-          "--brand-primary",
-          theme.primary
-        );
-
-        root.style.setProperty(
-          "--brand-primary-dark",
-          theme.primaryDark
-        );
-
-        root.style.setProperty(
-          "--brand-secondary",
-          theme.secondary
-        );
-
-        root.style.setProperty(
-          "--brand-soft",
-          theme.soft
-        );
-
-        root.style.setProperty(
-          "--brand-soft-border",
-          theme.softBorder
-        );
-
-        root.style.setProperty(
-          "--brand-soft-text",
-          theme.softText
-        );
-
-        root.style.setProperty(
-          "--logo-bg",
-          theme.logoBg
-        );
-
-        root.style.setProperty(
-          "--shadow-button",
-          theme.shadow
-        );
+        applyPatientTheme(patient.favorite_color);
       } catch {
         // Keep the default Smriti AI theme if preferences cannot be loaded.
       }
