@@ -40,7 +40,13 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    # Note: allow_credentials must stay False here -- browsers reject the
+    # combination of a wildcard origin with credentials enabled, which
+    # silently breaks every cross-origin request (e.g. the frontend on
+    # localhost:5173 calling the backend on 127.0.0.1:8000). This app
+    # authenticates via a Bearer token in the Authorization header, not
+    # cookies, so credentials mode was never actually needed.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
