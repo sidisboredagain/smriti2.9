@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { CheckCircle2, Loader2, Mic, Square } from "lucide-react";
 
 import { API_URL, PATIENT_ID, usePatient } from "../context/PatientContext";
+import { translate } from "../../lib/i18n";
 import PatientTopBar from "../components/PatientTopBar";
 
 function PatientRemember({ onHome }) {
@@ -14,6 +15,9 @@ function PatientRemember({ onHome }) {
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
+
+  const language = patient?.language || "English";
+  const t = (key, vars) => translate(language, key, vars);
 
   const startRecording = async () => {
     setError("");
@@ -36,7 +40,7 @@ function PatientRemember({ onHome }) {
       mediaRecorder.onerror = () => {
         stream.getTracks().forEach((track) => track.stop());
         setRecording(false);
-        setError("Something went wrong. Let's try again.");
+        setError(t("remember_err_generic"));
       };
 
       mediaRecorder.onstop = async () => {
@@ -48,7 +52,7 @@ function PatientRemember({ onHome }) {
 
         if (audioBlob.size === 0) {
           setSaving(false);
-          setError("I didn't hear anything. Let's try again.");
+          setError(t("remember_err_no_audio"));
           return;
         }
 
@@ -60,9 +64,7 @@ function PatientRemember({ onHome }) {
       setRecording(true);
     } catch {
       setRecording(false);
-      setError(
-        "I need permission to use the microphone to hear you."
-      );
+      setError(t("remember_err_mic_permission"));
     }
   };
 
@@ -81,8 +83,6 @@ function PatientRemember({ onHome }) {
       const formData = new FormData();
       formData.append("file", audioBlob, "memory.webm");
 
-      const language = patient?.language || "English";
-
       const response = await fetch(
         `${API_URL}/voice/transcribe-and-save/${PATIENT_ID}?language=${encodeURIComponent(
           language
@@ -98,7 +98,7 @@ function PatientRemember({ onHome }) {
 
       if (!response.ok) {
         throw new Error(
-          data.detail || "I couldn't save that. Let's try again."
+          data.detail || t("remember_err_save_failed")
         );
       }
 
@@ -112,17 +112,17 @@ function PatientRemember({ onHome }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <PatientTopBar onHome={onHome} label="Remember" />
+      <PatientTopBar onHome={onHome} label={t("topbar_remember")} />
 
       <div className="mx-auto flex max-w-[560px] flex-col items-center px-5 py-10 text-center sm:px-8 sm:py-14">
         <p className="mb-8 text-xl leading-relaxed text-muted-foreground sm:text-2xl">
-          Tell me about a memory. Speak whenever you are ready.
+          {t("remember_prompt")}
         </p>
 
         {recording && (
           <div className="mb-8 flex items-center gap-2.5 rounded-full bg-destructive-soft px-5 py-2.5 text-lg font-bold text-destructive">
             <span className="h-3 w-3 animate-pulse rounded-full bg-destructive" />
-            Listening
+            {t("remember_listening")}
           </div>
         )}
 
@@ -140,7 +140,7 @@ function PatientRemember({ onHome }) {
             )}
 
             <span className="text-xl font-bold">
-              {saving ? "One moment" : "Record"}
+              {saving ? t("remember_one_moment") : t("remember_record")}
             </span>
           </button>
         ) : (
@@ -150,7 +150,7 @@ function PatientRemember({ onHome }) {
             className="flex h-48 w-48 flex-col items-center justify-center gap-3 rounded-full bg-destructive text-white shadow-brand-md transition-transform active:scale-95 sm:h-56 sm:w-56"
           >
             <Square className="h-14 w-14" aria-hidden="true" />
-            <span className="text-xl font-bold">Stop</span>
+            <span className="text-xl font-bold">{t("remember_stop")}</span>
           </button>
         )}
 
@@ -162,7 +162,7 @@ function PatientRemember({ onHome }) {
             />
 
             <p className="text-xl font-bold text-foreground sm:text-2xl">
-              Thank you for sharing that.
+              {t("remember_thank_you")}
             </p>
 
             <p className="text-lg leading-relaxed text-muted-foreground sm:text-xl">

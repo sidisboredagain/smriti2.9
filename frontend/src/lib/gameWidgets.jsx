@@ -1,5 +1,42 @@
 import { useEffect, useRef, useState } from "react";
-import { Layers, Loader2, Undo2, Volume2 } from "lucide-react";
+import {
+  BookOpen,
+  Brain,
+  Cake,
+  CalendarHeart,
+  Check,
+  Circle,
+  Cloud,
+  Coffee,
+  CookingPot,
+  Flower,
+  Footprints,
+  Gem,
+  Heart,
+  Home,
+  Hospital,
+  Landmark,
+  Layers,
+  Loader2,
+  MapPin,
+  Moon,
+  Music,
+  Palmtree,
+  PartyPopper,
+  Plane,
+  School,
+  ShoppingBag,
+  Sparkles,
+  Square,
+  Star,
+  Sun,
+  Triangle,
+  Undo2,
+  User,
+  Users,
+  Utensils,
+  Volume2,
+} from "lucide-react";
 
 import { cn } from "./utils";
 import { Button } from "../components/ui/button";
@@ -274,6 +311,167 @@ export function MemorySequenceGame({
   );
 }
 
+// Maps the icon-name strings the backend sends (see
+// ATTENTION_FOCUS_ICONS in ai_game_generator.py) to actual lucide-react
+// components, so the Attention Focus game renders crisp line-art shapes
+// instead of relying on emoji font rendering.
+const ATTENTION_FOCUS_ICON_MAP = {
+  Star,
+  Circle,
+  Square,
+  Triangle,
+  Heart,
+  Sun,
+  Moon,
+  Cloud,
+};
+
+export function AttentionFocusGame({ game, disabled, onSubmit }) {
+  const cells = game?.game_data?.cells || [];
+  const targetIcon = game?.game_data?.target_icon;
+  const prompt = game?.game_data?.prompt;
+  const TargetIcon = ATTENTION_FOCUS_ICON_MAP[targetIcon] || Star;
+
+  const [selected, setSelected] = useState([]);
+  const submittedRef = useRef(false);
+  const startTimeRef = useRef(null);
+
+  useEffect(() => {
+    startTimeRef.current = Date.now();
+  }, []);
+
+  if (!cells.length) {
+    return null;
+  }
+
+  const selectedSet = new Set(selected);
+
+  const toggleCell = (cellId) => {
+    if (disabled || submittedRef.current) return;
+
+    setSelected((current) =>
+      current.includes(cellId)
+        ? current.filter((id) => id !== cellId)
+        : [...current, cellId]
+    );
+  };
+
+  const handleSubmit = () => {
+    if (disabled || submittedRef.current) return;
+
+    submittedRef.current = true;
+
+    const targetIds = new Set(game?.game_data?.target_cell_ids || []);
+    const missed = [...targetIds].filter((id) => !selectedSet.has(id)).length;
+    const incorrect = selected.filter((id) => !targetIds.has(id)).length;
+    const timeSeconds = elapsedSecondsSince(startTimeRef.current);
+
+    onSubmit(JSON.stringify(selected), {
+      mistakes: missed + incorrect,
+      time_seconds: timeSeconds,
+    });
+  };
+
+  return (
+    <div>
+      <div className="mb-5 flex flex-col items-center gap-2 rounded-xl border-2 border-primary bg-accent p-4 text-center">
+        <span className="text-xs font-bold uppercase tracking-wider text-primary">
+          Find this symbol
+        </span>
+        <TargetIcon
+          className="h-14 w-14 text-primary"
+          aria-hidden="true"
+          strokeWidth={2}
+        />
+        {prompt && (
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {prompt}
+          </p>
+        )}
+      </div>
+
+      <div
+        className="mb-5 grid gap-2.5"
+        style={{
+          gridTemplateColumns: `repeat(${game?.game_data?.cols || 4}, minmax(0, 1fr))`,
+        }}
+      >
+        {cells.map((cell) => {
+          const CellIcon = ATTENTION_FOCUS_ICON_MAP[cell.icon] || Star;
+          const isSelected = selectedSet.has(cell.cell_id);
+
+          return (
+            <button
+              key={cell.cell_id}
+              type="button"
+              onClick={() => toggleCell(cell.cell_id)}
+              disabled={disabled}
+              aria-pressed={isSelected}
+              className={cn(
+                "relative flex min-h-[64px] cursor-pointer items-center justify-center rounded-lg border-2 transition-colors disabled:cursor-not-allowed",
+                isSelected
+                  ? "border-primary bg-accent"
+                  : "border-border bg-card"
+              )}
+            >
+              <CellIcon
+                className="h-7 w-7 text-foreground"
+                aria-hidden="true"
+                strokeWidth={2}
+              />
+
+              {isSelected && (
+                <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                  <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      <Button
+        type="button"
+        onClick={handleSubmit}
+        disabled={disabled || selected.length === 0}
+        className="w-full"
+      >
+        Submit
+      </Button>
+    </div>
+  );
+}
+
+// Maps the icon-name strings the backend sends (see ICON_MAP in
+// ai_game_generator.py) to actual lucide-react components, so Visual
+// Recall / Object Recognition cards render crisp line-art icons instead
+// of emoji characters (this project does not use emoji anywhere).
+const OBJECT_ICON_MAP = {
+  BookOpen,
+  Brain,
+  Cake,
+  CalendarHeart,
+  Coffee,
+  CookingPot,
+  Flower,
+  Footprints,
+  Gem,
+  Home,
+  Hospital,
+  Landmark,
+  MapPin,
+  Music,
+  Palmtree,
+  PartyPopper,
+  Plane,
+  School,
+  ShoppingBag,
+  Sparkles,
+  User,
+  Users,
+  Utensils,
+};
+
 export function ObjectVisualRecallGame({
   game,
   disabled,
@@ -327,9 +525,16 @@ export function ObjectVisualRecallGame({
                   : "border-2 border-border bg-card"
               )}
             >
-              <span className="text-[40px] leading-none" aria-hidden="true">
-                {card.emoji}
-              </span>
+              {(() => {
+                const CardIcon = OBJECT_ICON_MAP[card.icon] || Brain;
+                return (
+                  <CardIcon
+                    className="h-10 w-10 text-primary"
+                    aria-hidden="true"
+                    strokeWidth={1.75}
+                  />
+                );
+              })()}
               <span className="text-base font-bold text-foreground [overflow-wrap:anywhere]">
                 {card.label}
               </span>

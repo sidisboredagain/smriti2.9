@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.memory import MemoryCreate, MemoryUpdate, MemoryResponse
 from app.services.memory_graph import build_patient_memory_graph
 from app.utils.roles import require_doctor_or_caregiver
-from app.utils.uploads import save_upload
+from app.utils.uploads import delete_upload, save_upload
 
 
 router = APIRouter(
@@ -19,6 +19,10 @@ router = APIRouter(
 
 
 ALLOWED_PHOTO_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+# 8 MB is generous for a phone photo while still keeping the hackathon's
+# local-disk uploads/ folder (and every request that reads it) bounded.
+MAX_PHOTO_SIZE_BYTES = 8 * 1024 * 1024
 
 
 @router.post("/", response_model=MemoryResponse)
@@ -110,6 +114,14 @@ async def upload_memory_photo(
             detail="Uploaded photo file is empty."
         )
 
+    if len(photo_bytes) > MAX_PHOTO_SIZE_BYTES:
+        raise HTTPException(
+            status_code=400,
+            detail="Photo is too large. Please use a file under 8 MB."
+        )
+
+    previous_image_url = memory.image_url
+
     memory.image_url = save_upload(
         photo_bytes,
         subfolder="memories",
@@ -118,6 +130,12 @@ async def upload_memory_photo(
 
     db.commit()
     db.refresh(memory)
+
+    # Clean up the photo this one just replaced, now that the new one is
+    # safely committed -- otherwise every "change photo" click leaves the
+    # old file behind on disk forever.
+    if previous_image_url and previous_image_url != memory.image_url:
+        delete_upload(previous_image_url)
 
     return memory
 
@@ -223,8 +241,16 @@ def delete_memory(
             detail="Memory not found"
         )
 
+    image_url = memory.image_url
+    audio_url = getattr(memory, "audio_url", None)
+
     db.delete(memory)
     db.commit()
+
+    # Best-effort: remove the memory's own files from disk now that the
+    # database row referencing them is gone.
+    delete_upload(image_url)
+    delete_upload(audio_url)
 
     return {
         "message": "Memory deleted successfully"

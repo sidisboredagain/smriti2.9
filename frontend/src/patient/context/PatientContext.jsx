@@ -32,6 +32,7 @@ function getAuthHeaders() {
 function PatientProvider({ children, onAuthError }) {
   const [patient, setPatient] = useState(null);
   const [comfortMemory, setComfortMemory] = useState(null);
+  const [comfortPool, setComfortPool] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -61,6 +62,8 @@ function PatientProvider({ children, onAuthError }) {
       setPatient(data);
       applyPatientTheme(data.favorite_color);
 
+      let designatedComfortMemory = null;
+
       if (data.comfort_memory_id) {
         try {
           const memoryResponse = await fetch(
@@ -69,13 +72,49 @@ function PatientProvider({ children, onAuthError }) {
           );
 
           if (memoryResponse.ok) {
-            setComfortMemory(await memoryResponse.json());
+            designatedComfortMemory = await memoryResponse.json();
+            setComfortMemory(designatedComfortMemory);
           }
         } catch {
           // A missing linked memory just means Comfort Mode falls back
           // to the plain text description below -- not worth failing
           // the whole page load over.
         }
+      }
+
+      // Build a small pool of "comforting" memories -- the caregiver's
+      // specifically designated one (if any) plus any other memory that
+      // has a real photo or voice recording attached, since those are
+      // exactly the personal, familiar items Comfort Mode is meant to
+      // show. Having more than one candidate lets Comfort Mode avoid
+      // showing the identical item every single time it's triggered
+      // within a session.
+      try {
+        const memoriesResponse = await fetch(
+          `${API_URL}/memories/?patient_id=${PATIENT_ID}&limit=100`,
+          { headers: getAuthHeaders() }
+        );
+
+        if (memoriesResponse.ok) {
+          const allMemories = await memoriesResponse.json();
+          const withMedia = allMemories.filter(
+            (memory) => memory.image_url || memory.audio_url
+          );
+
+          const pool = designatedComfortMemory
+            ? [
+                designatedComfortMemory,
+                ...withMedia.filter(
+                  (memory) => memory.id !== designatedComfortMemory.id
+                ),
+              ]
+            : withMedia;
+
+          setComfortPool(pool);
+        }
+      } catch {
+        // Comfort Mode still works from the single designated memory
+        // (or the plain text fallback) if this extra pool can't load.
       }
     } catch (err) {
       setError(err.message);
@@ -88,9 +127,30 @@ function PatientProvider({ children, onAuthError }) {
     load();
   }, [load]);
 
+  // Picks a comfort item to show, preferring one that isn't the same as
+  // whatever was shown last (when there's a real choice to make).
+  const pickComfortItem = useCallback(
+    (excludeId) => {
+      if (comfortPool.length === 0) {
+        return comfortMemory;
+      }
+
+      const choices = comfortPool.filter(
+        (memory) => memory.id !== excludeId
+      );
+
+      const pickFrom = choices.length > 0 ? choices : comfortPool;
+
+      return pickFrom[Math.floor(Math.random() * pickFrom.length)];
+    },
+    [comfortPool, comfortMemory]
+  );
+
   const value = {
     patient,
     comfortMemory,
+    comfortPool,
+    pickComfortItem,
     loading,
     error,
     reload: load,

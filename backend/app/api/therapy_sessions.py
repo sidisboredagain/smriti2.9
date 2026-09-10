@@ -117,6 +117,7 @@ def create_daily_therapy_session(
         ("memory_match", 0),
         ("visual_recall", 1),
         ("memory_sequence", 2),
+        ("attention_focus", 0),
         ("emotional_engagement", 0),
         ("multiple_choice", 1),
     ]
@@ -215,14 +216,14 @@ def create_daily_therapy_session(
             }
         )
 
-    # A daily therapy session must contain all five questions.
-    if session.total_games != 5:
+    # A daily therapy session must contain all six games.
+    if session.total_games != 6:
         db.rollback()
 
         raise HTTPException(
             status_code=400,
             detail=(
-                "Could not generate the complete 5-question "
+                "Could not generate the complete 6-question "
                 "cognitive therapy session from the patient's memories"
             ),
         )

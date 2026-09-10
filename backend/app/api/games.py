@@ -48,6 +48,7 @@ def generate_game(
         "memory_match",
         "memory_sequence",
         "visual_recall",
+        "attention_focus",
     }
 
     if game_type not in supported_game_types:
@@ -58,7 +59,7 @@ def generate_game(
                 "multiple_choice, true_false, fill_blank, attention, "
                 "routine_recall, pattern_recognition, object_recognition, "
                 "emotional_engagement, memory_match, memory_sequence, "
-                "visual_recall."
+                "visual_recall, attention_focus."
             )
         )
 
@@ -161,6 +162,17 @@ def check_answer(
         # revealed as matched by comparing the pair_id baked into the
         # game's own card data, so any completion submission counts.
         correct = bool(request.answer)
+
+    elif generated_game.game_type == "attention_focus":
+        # The submitted answer is a JSON array of the cell ids the patient
+        # tapped. Compare it (order does not matter) against the stored
+        # set of correct target cells.
+        try:
+            submitted_ids = set(json.loads(request.answer))
+            correct_ids = set(json.loads(generated_game.answer))
+            correct = submitted_ids == correct_ids
+        except (TypeError, ValueError):
+            correct = False
 
     else:
         correct = (

@@ -347,6 +347,71 @@ def extract_memory_facts(content: str) -> list[dict]:
         "evening",
         "afternoon",
         "night",
+        # Days, months, and seasons are frequently the first (and
+        # therefore capitalized) word of a sentence describing a memory
+        # ("Summers at grandfather's farm...", "Mondays were always
+        # busy...") but are not people's names. This concrete list is a
+        # deliberately simple, easy-to-verify patch for that failure
+        # mode -- a real fix would need actual name recognition, which
+        # this project does not have.
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+        "mondays",
+        "tuesdays",
+        "wednesdays",
+        "thursdays",
+        "fridays",
+        "saturdays",
+        "sundays",
+        "january",
+        "february",
+        "march",
+        "april",
+        "may",
+        "june",
+        "july",
+        "august",
+        "september",
+        "october",
+        "november",
+        "december",
+        "summer",
+        "summers",
+        "winter",
+        "winters",
+        "spring",
+        "springs",
+        "autumn",
+        "autumns",
+        "fall",
+        "falls",
+        "monsoon",
+        "monsoons",
+        # A few more common capitalized sentence-starters in the same
+        # spirit as the ones above.
+        "everyone",
+        "everybody",
+        "someone",
+        "somebody",
+        "anyone",
+        "nobody",
+        "everything",
+        "something",
+        "anything",
+        "nothing",
+        "together",
+        "throughout",
+        "eventually",
+        "occasionally",
+        "immediately",
+        "instead",
+        "otherwise",
+        "overall",
     }
 
     # Only use English-style capitalized words for person detection.
@@ -638,6 +703,8 @@ def translate_value(
             "hospital": "अस्पताल",
             "temple": "मंदिर",
             "market": "बाज़ार",
+            "grandmother": "दादी",
+            "grandfather": "दादा",
             "daughter": "बेटी",
             "son": "बेटा",
             "mother": "माँ",
@@ -669,6 +736,8 @@ def translate_value(
             "hospital": "হাসপাতাল",
             "temple": "মন্দির",
             "market": "বাজার",
+            "grandmother": "ঠাকুরমা",
+            "grandfather": "ঠাকুরদা",
             "daughter": "মেয়ে",
             "son": "ছেলে",
             "mother": "মা",
@@ -700,6 +769,8 @@ def translate_value(
             "hospital": "চিকিৎসালয়",
             "temple": "মন্দিৰ",
             "market": "বজাৰ",
+            "grandmother": "আইতা",
+            "grandfather": "আইতাক",
             "daughter": "জীয়েক",
             "son": "পুত্ৰ",
             "mother": "মাক",
@@ -819,6 +890,35 @@ def get_distractors(
     random.shuffle(choices)
 
     return choices[:4]
+
+
+def get_related_distractors(
+    facts: list[dict],
+    exclude_value: str,
+    count: int = 3,
+) -> list[str]:
+    """
+    Pick distractor values from the memory's own extracted facts, so
+    wrong options are at least drawn from what the person actually
+    described (e.g. another person, place, or activity mentioned in the
+    same memory) rather than a fixed, unrelated pool of generic
+    household words. Callers fall back to their own generic pool only
+    when the memory doesn't have enough distinct facts of its own to
+    fill out the options.
+    """
+    values = []
+    seen = {str(exclude_value).strip().lower()}
+
+    for fact in facts:
+        value = str(fact.get("value", "")).strip()
+
+        if value and value.lower() not in seen:
+            values.append(value)
+            seen.add(value.lower())
+
+    random.shuffle(values)
+
+    return values[:count]
 
 
 def generate_multiple_choice_game(
@@ -982,15 +1082,27 @@ def _pick_fact(facts: list[dict], preferred_types: list[str]) -> dict:
 
 
 def get_attention_options(facts: list[dict], answer: str) -> list[str]:
-    """Build short, concrete options for an attention challenge."""
-    values = []
-    seen = set()
+    """
+    Build short, concrete options for an attention challenge.
+
+    The answer is always kept in the final options -- a memory with 4 or
+    more distinct facts used to be able to collect more "other" values
+    than fit in the 4-option list, and shuffling before truncating to 4
+    could silently cut the correct answer itself, crashing the caller
+    (which looks up the answer's position in the returned list).
+    """
+    others = []
+    seen = {answer.strip().lower()}
 
     for fact in facts:
         value = str(fact.get("value", "")).strip()
+
         if value and value.lower() not in seen:
-            values.append(value)
+            others.append(value)
             seen.add(value.lower())
+
+        if len(others) >= 3:
+            break
 
     distractors = [
         "morning", "evening", "Sunday", "Monday",
@@ -998,17 +1110,20 @@ def get_attention_options(facts: list[dict], answer: str) -> list[str]:
     ]
 
     for value in distractors:
-        if value.lower() != answer.lower() and value.lower() not in seen:
-            values.append(value)
-            seen.add(value.lower())
-        if len(values) >= 4:
+        if len(others) >= 3:
             break
 
-    if answer.lower() not in {value.lower() for value in values}:
-        values.insert(0, answer)
+        if value.lower() not in seen:
+            others.append(value)
+            seen.add(value.lower())
 
-    random.shuffle(values)
-    return values[:4]
+    options = [answer] + others[:3]
+
+    while len(options) < 4:
+        options.append("Not sure")
+
+    random.shuffle(options)
+    return options[:4]
 
 
 def generate_attention_game(
@@ -1144,7 +1259,10 @@ def generate_object_recognition_game(
     ]
     fact = random.choice(object_like) if object_like else random.choice(facts)
 
-    object_options = [
+    # Fixed, generic fallback pool -- only used to top up the options
+    # when the memory itself doesn't have enough distinct facts to draw
+    # real distractors from.
+    generic_object_options = [
         "tea", "coffee", "book", "chair",
         "garden", "home", "market", "park",
     ]
@@ -1152,12 +1270,17 @@ def generate_object_recognition_game(
     options = [fact["value"]]
     seen = {fact["value"].lower()}
 
-    for item in object_options:
+    for value in get_related_distractors(facts, fact["value"], count=3):
+        if value.lower() not in seen:
+            options.append(value)
+            seen.add(value.lower())
+
+    for item in generic_object_options:
+        if len(options) >= 4:
+            break
         if item.lower() not in seen:
             options.append(item)
             seen.add(item.lower())
-        if len(options) >= 4:
-            break
 
     translated_options = translate_options(options, language)
     answer_index = options.index(fact["value"])
@@ -1249,60 +1372,112 @@ def generate_emotional_engagement_game(
     }
 
 
-EMOJI_MAP = {
-    "tea": "🍵",
-    "coffee": "☕",
-    "book": "📖",
-    "reading": "📖",
-    "garden": "🌷",
-    "home": "🏠",
-    "market": "🛍️",
-    "park": "🌳",
-    "temple": "🛕",
-    "school": "🏫",
-    "hospital": "🏥",
-    "wedding": "💍",
-    "marriage": "💍",
-    "birthday": "🎂",
-    "festival": "🎉",
-    "trip": "✈️",
-    "holiday": "🏖️",
-    "family": "👨‍👩‍👧‍👦",
-    "friend": "🤝",
-    "daughter": "👧",
-    "son": "👦",
-    "mother": "👩",
-    "father": "👨",
-    "brother": "🧑",
-    "sister": "👧",
-    "wife": "👰",
-    "husband": "🤵",
-    "grandmother": "👵",
-    "grandfather": "👴",
-    "walking": "🚶",
-    "singing": "🎵",
-    "cooking": "🍳",
-    "shopping": "🛍️",
-    "breakfast": "🍳",
-    "lunch": "🍽️",
-    "dinner": "🍽️",
-    "jaipur": "🏰",
-    "delhi": "🏛️",
-    "mumbai": "🌆",
-    "chennai": "🏖️",
-    "kolkata": "🏙️",
-    "bengaluru": "🌆",
-    "guwahati": "🏞️",
-    "assam": "🏞️",
+# Icon-name strings, not emoji. These map to lucide-react components on
+# the frontend (see OBJECT_ICON_MAP in gameWidgets.jsx), the same
+# convention already used for the Attention Focus game's shapes -- crisp,
+# consistent line-art instead of emoji font rendering, which also avoids
+# emoji entirely per this project's "no emoji" rule.
+ICON_MAP = {
+    "tea": "Coffee",
+    "coffee": "Coffee",
+    "book": "BookOpen",
+    "reading": "BookOpen",
+    "garden": "Flower",
+    "home": "Home",
+    "market": "ShoppingBag",
+    "park": "TreePine",
+    "temple": "Landmark",
+    "school": "School",
+    "hospital": "Hospital",
+    "wedding": "Gem",
+    "marriage": "Gem",
+    "birthday": "Cake",
+    "festival": "PartyPopper",
+    "trip": "Plane",
+    "holiday": "Palmtree",
+    "family": "Users",
+    "friend": "Users",
+    "daughter": "User",
+    "son": "User",
+    "mother": "User",
+    "father": "User",
+    "brother": "User",
+    "sister": "User",
+    "wife": "User",
+    "husband": "User",
+    "grandmother": "User",
+    "grandfather": "User",
+    "walking": "Footprints",
+    "singing": "Music",
+    "cooking": "CookingPot",
+    "shopping": "ShoppingBag",
+    "breakfast": "Utensils",
+    "lunch": "Utensils",
+    "dinner": "Utensils",
+    "jaipur": "Landmark",
+    "delhi": "Landmark",
+    "mumbai": "Landmark",
+    "chennai": "Palmtree",
+    "kolkata": "Landmark",
+    "bengaluru": "TreePine",
+    "guwahati": "TreePine",
+    "assam": "TreePine",
 }
 
-DEFAULT_EMOJI = "🧠"
+# Sensible icon fallback by fact type, used when a value isn't one of the
+# specific keywords above (e.g. a person's actual name, an unrecognized
+# place) -- still meaningfully related to the fact instead of one single
+# generic symbol for everything.
+TYPE_DEFAULT_ICONS = {
+    "person": "User",
+    "relationship": "Users",
+    "location": "MapPin",
+    "event": "CalendarHeart",
+    "activity": "Sparkles",
+}
+
+DEFAULT_ICON = "Brain"
 
 GENERIC_MATCH_FILLERS = {
     "english": [("Family", "Together"), ("Memory", "Special"), ("Home", "Comfort")],
     "hindi": [("परिवार", "साथ"), ("याद", "खास"), ("घर", "सुकून")],
     "bengali": [("পরিবার", "একসাথে"), ("স্মৃতি", "বিশেষ"), ("বাড়ি", "আরাম")],
     "assamese": [("পৰিয়াল", "একেলগে"), ("স্মৃতি", "বিশেষ"), ("ঘৰ", "আৰাম")],
+}
+
+# Category label for each fact type, used to pair a Memory Match fact
+# with a label describing *what kind* of thing it is (e.g. "Rina" <->
+# "Family") instead of pairing every fact with one shared value repeated
+# across multiple cards.
+CATEGORY_LABELS = {
+    "english": {
+        "event": "Occasion",
+        "relationship": "Family",
+        "person": "Person",
+        "location": "Place",
+        "activity": "Activity",
+    },
+    "hindi": {
+        "event": "अवसर",
+        "relationship": "परिवार",
+        "person": "व्यक्ति",
+        "location": "स्थान",
+        "activity": "गतिविधि",
+    },
+    "bengali": {
+        "event": "উপলক্ষ",
+        "relationship": "পরিবার",
+        "person": "ব্যক্তি",
+        "location": "স্থান",
+        "activity": "কার্যকলাপ",
+    },
+    "assamese": {
+        "event": "উপলক্ষ",
+        "relationship": "পৰিয়াল",
+        "person": "ব্যক্তি",
+        "location": "ঠাই",
+        "activity": "কাৰ্যকলাপ",
+    },
 }
 
 SEQUENCE_FALLBACKS = {
@@ -1413,8 +1588,19 @@ SEQUENCE_FALLBACKS = {
 }
 
 
-def get_emoji(value: str) -> str:
-    return EMOJI_MAP.get(str(value).strip().lower(), DEFAULT_EMOJI)
+def get_icon_name(value: str, fact_type: str | None = None) -> str:
+    """
+    Return a lucide-react icon-name string for a value -- never a literal
+    emoji character. Falls back to a fact-type-appropriate icon (e.g. a
+    generic "person" icon for an unrecognized name) rather than one
+    single default symbol for everything.
+    """
+    key = str(value).strip().lower()
+
+    if key in ICON_MAP:
+        return ICON_MAP[key]
+
+    return TYPE_DEFAULT_ICONS.get(fact_type, DEFAULT_ICON)
 
 
 def generate_memory_match_game(
@@ -1425,24 +1611,32 @@ def generate_memory_match_game(
 ) -> dict:
     """
     Generate a Memory Match game: 2-3 pairs of related concepts drawn
-    from the memory's own facts (e.g. Daughter <-> Wedding, Jaipur <->
-    Wedding), rendered as large shuffled cards.
+    from the memory's own facts (e.g. Daughter <-> Family, Jaipur <->
+    Place), rendered as large shuffled cards.
+
+    Each fact is paired with its own category label rather than a single
+    shared "hub" value repeated across every pair -- pairing every fact
+    with the same hub label meant that label showed up as 2-3 separate,
+    near-identical cards on screen, which read as a repeat/duplicate bug
+    to anyone playing (the same short phrase appearing several times).
+    Category labels differ by fact type, so distinct facts never produce
+    duplicate-looking cards.
     """
     language_lower = language.lower()
 
-    event_facts = _get_facts_by_type(facts, "event")
+    category_labels = CATEGORY_LABELS.get(
+        language_lower,
+        CATEGORY_LABELS["english"],
+    )
 
-    if event_facts:
-        hub_source = event_facts[0]["value"]
-    else:
-        hub_source = memory.get("title") or "this memory"
-
-    hub_label = translate_value(hub_source, language)
-
-    seen_values = {str(hub_source).strip().lower()}
+    seen_values = set()
+    seen_types = set()
     pair_sources = []
 
-    for fact_type in ["relationship", "person", "location", "activity"]:
+    for fact_type in ["event", "relationship", "person", "location", "activity"]:
+        if fact_type in seen_types:
+            continue
+
         for fact in _get_facts_by_type(facts, fact_type):
             value = str(fact.get("value", "")).strip()
 
@@ -1450,10 +1644,15 @@ def generate_memory_match_game(
                 continue
 
             seen_values.add(value.lower())
+            seen_types.add(fact_type)
             pair_sources.append(fact)
+            break
 
     pairs_raw = [
-        (translate_value(fact["value"], language), hub_label)
+        (
+            translate_value(fact["value"], language),
+            category_labels.get(fact["type"], category_labels["activity"]),
+        )
         for fact in pair_sources[:3]
     ]
 
@@ -1507,7 +1706,10 @@ def generate_memory_match_game(
         "options": [],
         "difficulty": difficulty,
         "answer": "completed",
-        "memory_fact": {"type": "memory_match", "value": hub_label},
+        "memory_fact": {
+            "type": "memory_match",
+            "value": memory.get("title") or "this memory",
+        },
         "game_data": game_data,
     }
 
@@ -1607,7 +1809,10 @@ def generate_visual_recall_game(
     fact = random.choice(object_like) if object_like else random.choice(facts)
     answer_value = str(fact["value"]).strip()
 
-    icon_pool = [
+    # Fixed, generic fallback pool -- only used to top up the options
+    # when the memory itself doesn't have enough distinct facts of its
+    # own to draw real distractors from.
+    generic_icon_pool = [
         "tea", "coffee", "book", "garden", "home",
         "market", "park", "family", "friend", "wedding", "birthday",
     ]
@@ -1615,12 +1820,26 @@ def generate_visual_recall_game(
     option_values = [answer_value]
     seen = {answer_value.lower()}
 
-    for item in icon_pool:
+    for value in get_related_distractors(facts, answer_value, count=3):
+        if value.lower() not in seen:
+            option_values.append(value)
+            seen.add(value.lower())
+
+    for item in generic_icon_pool:
+        if len(option_values) >= 4:
+            break
         if item.lower() not in seen:
             option_values.append(item)
             seen.add(item.lower())
-        if len(option_values) >= 4:
-            break
+
+    # Track which fact (if any) each option value came from, so a real
+    # person's name or place still gets a sensible type-based icon
+    # instead of falling through to the single generic default.
+    value_to_fact_type = {
+        str(other["value"]).strip().lower(): other.get("type")
+        for other in facts
+    }
+    value_to_fact_type[answer_value.lower()] = fact["type"]
 
     cards = []
 
@@ -1628,7 +1847,7 @@ def generate_visual_recall_game(
         cards.append({
             "id": re.sub(r"\s+", "-", value.lower()),
             "label": translate_value(value, language),
-            "emoji": get_emoji(value),
+            "icon": get_icon_name(value, value_to_fact_type.get(value.lower())),
         })
 
     random.shuffle(cards)
@@ -1659,6 +1878,150 @@ def generate_visual_recall_game(
         "difficulty": difficulty,
         "answer": translated_answer_label,
         "memory_fact": {"type": fact["type"], "value": answer_value},
+        "game_data": game_data,
+    }
+
+
+# Large, clearly-distinguishable shapes for the Attention Focus game. These
+# map to lucide-react icon components on the frontend (see gameWidgets.jsx)
+# rather than emoji, so they render crisply and consistently across
+# devices. Kept to a small, high-contrast set on purpose -- this game is
+# for dementia patients, so clarity matters far more than variety.
+ATTENTION_FOCUS_ICONS = [
+    "Star",
+    "Circle",
+    "Square",
+    "Triangle",
+    "Heart",
+    "Sun",
+    "Moon",
+    "Cloud",
+]
+
+ATTENTION_FOCUS_GRID_SIZES = {
+    "easy": {"rows": 3, "cols": 4, "target_count": 3},
+    "medium": {"rows": 4, "cols": 4, "target_count": 4},
+    "hard": {"rows": 4, "cols": 5, "target_count": 5},
+}
+
+ATTENTION_FOCUS_COPY = {
+    "english": {
+        "instructions": "Find every {target} in the grid, then press Submit.",
+        "prompt": "Tap every matching symbol. Take your time -- accuracy is what matters!",
+    },
+    "hindi": {
+        "instructions": "ग्रिड में हर {target} को खोजें, फिर सबमिट दबाएं।",
+        "prompt": "हर मेल खाते चिन्ह को छुएं। अपना समय लें -- सटीकता ही मायने रखती है!",
+    },
+    "bengali": {
+        "instructions": "গ্রিডে প্রতিটি {target} খুঁজুন, তারপর সাবমিট চাপুন।",
+        "prompt": "প্রতিটি মিলে যাওয়া চিহ্ন স্পর্শ করুন। সময় নিন -- নির্ভুলতাই গুরুত্বপূর্ণ!",
+    },
+    "assamese": {
+        "instructions": "গ্ৰীডত প্ৰতিটো {target} বিচাৰক, তাৰ পিছত জমা দিয়ক টিপক।",
+        "prompt": "প্ৰতিটো মিল থকা চিহ্ন স্পৰ্শ কৰক। সময় লওক -- সঠিকতাই গুৰুত্বপূৰ্ণ!",
+    },
+}
+
+ATTENTION_FOCUS_LABELS = {
+    "english": {
+        "Star": "star", "Circle": "circle", "Square": "square",
+        "Triangle": "triangle", "Heart": "heart", "Sun": "sun",
+        "Moon": "moon", "Cloud": "cloud",
+    },
+    "hindi": {
+        "Star": "तारा", "Circle": "गोला", "Square": "वर्ग",
+        "Triangle": "त्रिकोण", "Heart": "दिल", "Sun": "सूरज",
+        "Moon": "चाँद", "Cloud": "बादल",
+    },
+    "bengali": {
+        "Star": "তারা", "Circle": "বৃত্ত", "Square": "বর্গক্ষেত্র",
+        "Triangle": "ত্রিভুজ", "Heart": "হৃদয়", "Sun": "সূর্য",
+        "Moon": "চাঁদ", "Cloud": "মেঘ",
+    },
+    "assamese": {
+        "Star": "তৰা", "Circle": "বৃত্ত", "Square": "বৰ্গক্ষেত্ৰ",
+        "Triangle": "ত্ৰিভুজ", "Heart": "হৃদয়", "Sun": "সূৰ্য",
+        "Moon": "জোন", "Cloud": "ডাৱৰ",
+    },
+}
+
+
+def generate_attention_focus_game(
+    difficulty: str,
+    language: str,
+) -> dict:
+    """
+    Generate an "Attention Focus" game: a target symbol is shown, and the
+    patient must tap every matching symbol in a grid of distractors.
+
+    This is a generic visual-attention exercise rather than a
+    memory-content question, so (unlike the other game types here) it
+    does not depend on the memory's text at all -- it works even for a
+    very short memory.
+    """
+    language_lower = language.lower()
+    difficulty_key = difficulty if difficulty in ATTENTION_FOCUS_GRID_SIZES else "easy"
+    grid_config = ATTENTION_FOCUS_GRID_SIZES[difficulty_key]
+
+    total_cells = grid_config["rows"] * grid_config["cols"]
+    target_count = min(grid_config["target_count"], total_cells - 1)
+
+    target_icon = random.choice(ATTENTION_FOCUS_ICONS)
+
+    # One or two distractor shapes -- enough variety that the grid isn't
+    # just "target vs. one other thing" every round, but never so many
+    # different shapes that the grid feels visually overwhelming.
+    other_icons = [icon for icon in ATTENTION_FOCUS_ICONS if icon != target_icon]
+    distractor_icons = random.sample(other_icons, k=min(2, len(other_icons)))
+
+    icons_for_cells = [target_icon] * target_count
+    remaining = total_cells - target_count
+
+    for index in range(remaining):
+        icons_for_cells.append(distractor_icons[index % len(distractor_icons)])
+
+    random.shuffle(icons_for_cells)
+
+    cells = [
+        {"cell_id": f"cell-{index + 1}", "icon": icon}
+        for index, icon in enumerate(icons_for_cells)
+    ]
+
+    target_cell_ids = sorted(
+        cell["cell_id"] for cell in cells if cell["icon"] == target_icon
+    )
+
+    labels = ATTENTION_FOCUS_LABELS.get(
+        language_lower, ATTENTION_FOCUS_LABELS["english"]
+    )
+    target_label = labels.get(target_icon, target_icon.lower())
+
+    copy = ATTENTION_FOCUS_COPY.get(
+        language_lower, ATTENTION_FOCUS_COPY["english"]
+    )
+    instructions = copy["instructions"].format(target=target_label)
+    prompt = copy["prompt"]
+
+    game_data = {
+        "mode": "attention_focus",
+        "instructions": instructions,
+        "prompt": prompt,
+        "target_icon": target_icon,
+        "target_label": target_label,
+        "rows": grid_config["rows"],
+        "cols": grid_config["cols"],
+        "cells": cells,
+        "target_cell_ids": target_cell_ids,
+    }
+
+    return {
+        "game_type": "attention_focus",
+        "question": instructions,
+        "options": [],
+        "difficulty": difficulty,
+        "answer": json.dumps(target_cell_ids),
+        "memory_fact": {"type": "attention_focus", "value": target_label},
         "game_data": game_data,
     }
 
@@ -1700,6 +2063,12 @@ def generate_ai_game(memory: dict) -> dict:
         "game_type",
         "multiple_choice"
     )
+
+    if requested_game_type == "attention_focus":
+        return generate_attention_focus_game(
+            difficulty=difficulty,
+            language=language,
+        )
 
     memory_dna = memory.get(
         "memory_dna"

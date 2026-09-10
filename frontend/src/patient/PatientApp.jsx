@@ -7,6 +7,7 @@ import PatientPlay from "./pages/PatientPlay";
 import PatientRemember from "./pages/PatientRemember";
 import PatientMemories from "./pages/PatientMemories";
 import PatientComfort from "./pages/PatientComfort";
+import PatientTeachMe from "./pages/PatientTeachMe";
 
 // The patient app's own tiny screen-switcher, matching the same simple
 // useState pattern the caregiver app (App.jsx) already uses -- there's no
@@ -48,6 +49,10 @@ function PatientScreens() {
 
   if (screen === "comfort") {
     return <PatientComfort onHome={goHome} />;
+  }
+
+  if (screen === "teach_me") {
+    return <PatientTeachMe onHome={goHome} />;
   }
 
   return <PatientHome onNavigate={setScreen} />;

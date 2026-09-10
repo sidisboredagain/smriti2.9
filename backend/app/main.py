@@ -29,6 +29,7 @@ from app.api.memory_dna import router as memory_dna_router
 from app.api.caregiver import router as caregiver_router
 from app.api.adaptive import router as adaptive_router
 from app.api.reminders import router as reminders_router
+from app.api.teach_me import router as teach_me_router
 
 
 Base.metadata.create_all(bind=engine)
@@ -76,6 +77,7 @@ app.include_router(memory_dna_router)
 app.include_router(caregiver_router)
 app.include_router(adaptive_router)
 app.include_router(reminders_router)
+app.include_router(teach_me_router)
 
 
 @app.get("/")

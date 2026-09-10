@@ -14,6 +14,7 @@ import {
   PartyPopper,
   PenLine,
   Puzzle,
+  ScanSearch,
   Search,
   Target,
   Volume2,
@@ -27,11 +28,13 @@ import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Progress } from "../components/ui/progress";
 import {
+  AttentionFocusGame,
   AudioButton,
   MemoryMatchGame,
   MemorySequenceGame,
   ObjectVisualRecallGame,
 } from "../lib/gameWidgets";
+import { translate } from "../lib/i18n";
 
 const API_URL = "http://127.0.0.1:8000";
 const PATIENT_ID = 1;
@@ -39,6 +42,8 @@ const PATIENT_ID = 1;
 function Therapy() {
   const [language, setLanguage] = useState("English");
   const [loadingLanguage, setLoadingLanguage] = useState(true);
+
+  const t = (key, vars) => translate(language, key, vars);
 
   const [session, setSession] = useState(null);
   const [games, setGames] = useState([]);
@@ -130,9 +135,9 @@ function Therapy() {
         );
       }
 
-      if (!data.games || data.games.length !== 5) {
+      if (!data.games || data.games.length !== 6) {
         throw new Error(
-          "The therapy session did not contain all 5 questions."
+          "The therapy session did not contain all 6 questions."
         );
       }
 
@@ -319,20 +324,21 @@ function Therapy() {
 
   const getCognitiveTitle = (gameType) => {
     const titles = {
-      multiple_choice: "Memory Recall",
-      true_false: "Memory Check",
-      fill_blank: "Recall Challenge",
-      attention: "Attention Challenge",
-      routine_recall: "Routine Recall",
-      pattern_recognition: "Pattern Recognition",
-      object_recognition: "Object Recognition",
-      emotional_engagement: "Personal Memory",
-      memory_match: "Memory Match",
-      memory_sequence: "Memory Sequence",
-      visual_recall: "Object & Visual Recall",
+      multiple_choice: t("game_type_multiple_choice"),
+      true_false: t("game_type_true_false"),
+      fill_blank: t("game_type_fill_blank"),
+      attention: t("game_type_attention"),
+      routine_recall: t("game_type_routine_recall"),
+      pattern_recognition: t("game_type_pattern_recognition"),
+      object_recognition: t("game_type_object_recognition"),
+      emotional_engagement: t("game_type_emotional_engagement"),
+      memory_match: t("game_type_memory_match"),
+      memory_sequence: t("game_type_memory_sequence"),
+      visual_recall: t("game_type_visual_recall"),
+      attention_focus: t("game_type_attention_focus"),
     };
 
-    return titles[gameType] || "Cognitive Activity";
+    return titles[gameType] || t("game_type_default");
   };
 
   const getCognitiveIcon = (gameType) => {
@@ -348,16 +354,17 @@ function Therapy() {
       memory_match: Layers,
       memory_sequence: ListOrdered,
       visual_recall: ImageIcon,
+      attention_focus: ScanSearch,
     };
 
     return icons[gameType] || Brain;
   };
 
   const getDifficultyLabel = (difficulty) => {
-    if (!difficulty) return "Adaptive";
+    if (!difficulty) return t("therapy_adaptive");
 
     if (difficulty.toLowerCase() === "comfort") {
-      return "Comfort Mode";
+      return t("therapy_comfort_mode");
     }
 
     return (
@@ -367,7 +374,7 @@ function Therapy() {
   };
 
   const isSessionComplete =
-    games.length === 5 &&
+    games.length > 0 &&
     currentIndex >= games.length - 1 &&
     Boolean(answerResult);
 
@@ -385,6 +392,7 @@ function Therapy() {
     "memory_match",
     "memory_sequence",
     "visual_recall",
+    "attention_focus",
   ];
 
   const hasVisualGameUi = Boolean(
@@ -400,18 +408,17 @@ function Therapy() {
         </p>
 
         <h1 className="text-4xl leading-tight text-foreground sm:text-[2.875rem]">
-          Today&apos;s Therapy Session
+          {t("therapy_title")}
         </h1>
 
         <p className="mt-4 max-w-[650px] text-lg leading-relaxed text-muted-foreground">
-          A gentle cognitive activity created from familiar
-          memories. Take your time and enjoy the memory.
+          {t("therapy_description")}
         </p>
 
         <p className="mt-[18px] text-[15px] font-bold text-primary">
           {loadingLanguage
-            ? "Loading patient language..."
-            : `Patient language: ${language}`}
+            ? t("therapy_loading_patient_language")
+            : t("therapy_patient_language_label", { language })}
         </p>
 
         {!session && (
@@ -426,13 +433,13 @@ function Therapy() {
             {loadingSession ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                Creating 5-question session...
+                {t("therapy_creating_session")}
               </>
             ) : loadingLanguage ? (
-              "Loading language..."
+              t("therapy_loading_language")
             ) : (
               <>
-                Start 5-Question Session
+                {t("therapy_start_session")}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </>
             )}
@@ -443,13 +450,17 @@ function Therapy() {
           <Card className="mt-10 rounded-xl p-6 sm:p-9">
             <div className="mb-6 flex flex-col items-start justify-between gap-5 sm:flex-row">
               <p className="text-[13px] font-bold uppercase tracking-wider text-faint">
-                Question {currentIndex + 1} of{" "}
-                {games.length}
+                {t("therapy_question_of", {
+                  current: currentIndex + 1,
+                  total: games.length,
+                })}
               </p>
 
               <div className="whitespace-nowrap text-sm font-bold text-primary">
-                {sessionCompletedGames} /{" "}
-                {session.total_games} completed
+                {t("therapy_completed_count", {
+                  completed: sessionCompletedGames,
+                  total: session.total_games,
+                })}
               </div>
             </div>
 
@@ -493,7 +504,7 @@ function Therapy() {
 
               <div className="min-w-0">
                 <p className="mb-1 text-xs font-bold uppercase tracking-wider text-primary">
-                  This question is about the memory:
+                  {t("therapy_memory_about")}
                 </p>
 
                 <p className="text-lg font-bold leading-snug text-foreground [overflow-wrap:anywhere] sm:text-xl">
@@ -516,12 +527,12 @@ function Therapy() {
               {speaking && !speakingOption ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  Speaking...
+                  {t("therapy_speaking")}
                 </>
               ) : (
                 <>
                   <Volume2 className="h-4 w-4" aria-hidden="true" />
-                  Listen to Question
+                  {t("therapy_listen_to_question")}
                 </>
               )}
             </Button>
@@ -568,6 +579,18 @@ function Therapy() {
                   speakText={speakText}
                   speaking={speaking}
                   speakingOption={speakingOption}
+                />
+              )}
+
+            {hasVisualGameUi &&
+              currentGame.game_type === "attention_focus" && (
+                <AttentionFocusGame
+                  key={currentGame.game_id}
+                  game={currentGame}
+                  disabled={
+                    checkingAnswer || Boolean(answerResult)
+                  }
+                  onSubmit={checkAnswer}
                 />
               )}
 
@@ -628,8 +651,8 @@ function Therapy() {
                 className="mt-6"
               >
                 {answerResult.correct
-                  ? "✓ Correct! Great job."
-                  : "Take another look at the memory. You can continue when ready."}
+                  ? t("therapy_correct")
+                  : t("therapy_try_look_again")}
               </Alert>
             )}
 
@@ -651,16 +674,16 @@ function Therapy() {
                 {completingGame ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    Saving progress...
+                    {t("therapy_saving_progress")}
                   </>
                 ) : currentIndex === games.length - 1 ? (
                   <>
-                    Finish Session
+                    {t("therapy_finish_session")}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </>
                 ) : (
                   <>
-                    Next Question
+                    {t("therapy_next_question")}
                     <ArrowRight className="h-4 w-4" aria-hidden="true" />
                   </>
                 )}
@@ -677,17 +700,18 @@ function Therapy() {
             />
 
             <h2 className="mb-3 text-[2rem] text-foreground">
-              Therapy Session Complete
+              {t("therapy_session_complete")}
             </h2>
 
             <p className="leading-relaxed text-muted-foreground">
-              You completed all 5 personalized questions.
-              Great work!
+              {t("therapy_completed_all")}
             </p>
 
             <p className="mt-4 font-bold text-primary">
-              {session.total_games} of{" "}
-              {session.total_games} questions completed
+              {t("therapy_questions_completed", {
+                completed: session.total_games,
+                total: session.total_games,
+              })}
             </p>
 
             <Button
@@ -701,11 +725,11 @@ function Therapy() {
               {loadingSession ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  Starting...
+                  {t("therapy_starting")}
                 </>
               ) : (
                 <>
-                  Start Another Session
+                  {t("therapy_start_another")}
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </>
               )}

@@ -11,6 +11,7 @@ import {
   Mic,
   PartyPopper,
   Sparkles,
+  Trash2,
   Users,
   UtensilsCrossed,
   Luggage,
@@ -44,7 +45,17 @@ function MemoryVault() {
 
   const [photoUploading, setPhotoUploading] = useState(null);
   const [photoMessages, setPhotoMessages] = useState({});
+  const [pendingPhoto, setPendingPhoto] = useState(null);
   const photoInputRefs = useRef({});
+
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteMessages, setDeleteMessages] = useState({});
+
+  // 8 MB matches the backend's own limit (see MAX_PHOTO_SIZE_BYTES in
+  // api/memories.py) -- checked here too so the caregiver finds out
+  // immediately instead of waiting on a round trip that will be rejected.
+  const MAX_PHOTO_SIZE_BYTES = 8 * 1024 * 1024;
 
   const [language, setLanguage] = useState("English");
   const [loadingLanguage, setLoadingLanguage] = useState(true);
@@ -99,6 +110,39 @@ function MemoryVault() {
       handleAuthError(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const deleteMemory = async (memoryId) => {
+    setDeletingId(memoryId);
+    setDeleteMessages((current) => ({ ...current, [memoryId]: "" }));
+
+    try {
+      const response = await fetch(
+        `${API_URL}/memories/${memoryId}`,
+        {
+          method: "DELETE",
+          headers: getAuthHeaders(),
+        }
+      );
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || "Could not delete this memory.");
+      }
+
+      setMemories((current) =>
+        current.filter((memory) => memory.id !== memoryId)
+      );
+      setConfirmDeleteId(null);
+    } catch (error) {
+      setDeleteMessages((current) => ({
+        ...current,
+        [memoryId]: error.message,
+      }));
+      handleAuthError(error);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -369,6 +413,58 @@ function MemoryVault() {
     } finally {
       setPhotoUploading(null);
     }
+  };
+
+  const selectPendingPhoto = (memoryId, file) => {
+    if (!file) {
+      return;
+    }
+
+    setPhotoMessages((current) => ({
+      ...current,
+      [memoryId]: "",
+    }));
+
+    if (file.size > MAX_PHOTO_SIZE_BYTES) {
+      setPhotoMessages((current) => ({
+        ...current,
+        [memoryId]: "Photo is too large. Please use a file under 8 MB.",
+      }));
+      return;
+    }
+
+    setPendingPhoto((current) => {
+      if (current?.previewUrl) {
+        URL.revokeObjectURL(current.previewUrl);
+      }
+
+      return {
+        memoryId,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      };
+    });
+  };
+
+  const confirmPendingPhoto = async () => {
+    if (!pendingPhoto) {
+      return;
+    }
+
+    const { memoryId, file, previewUrl } = pendingPhoto;
+
+    await uploadMemoryPhoto(memoryId, file);
+
+    URL.revokeObjectURL(previewUrl);
+    setPendingPhoto(null);
+  };
+
+  const cancelPendingPhoto = () => {
+    if (pendingPhoto?.previewUrl) {
+      URL.revokeObjectURL(pendingPhoto.previewUrl);
+    }
+
+    setPendingPhoto(null);
   };
 
   const getCategoryIcon = (value) => {
@@ -729,7 +825,7 @@ function MemoryVault() {
                           className="hidden"
                           onChange={(event) => {
                             const file = event.target.files?.[0];
-                            uploadMemoryPhoto(memory.id, file);
+                            selectPendingPhoto(memory.id, file);
                             event.target.value = "";
                           }}
                         />
@@ -763,7 +859,96 @@ function MemoryVault() {
                             />
                           </audio>
                         )}
+
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="ml-auto text-destructive hover:bg-destructive-soft"
+                          disabled={deletingId === memory.id}
+                          onClick={() => setConfirmDeleteId(memory.id)}
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden="true" />
+                          Delete
+                        </Button>
                       </div>
+
+                      {confirmDeleteId === memory.id && (
+                        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-destructive bg-destructive-soft p-3">
+                          <p className="text-[13px] font-bold text-destructive">
+                            Delete this memory{memory.audio_url ? " and its voice recording" : ""}? This can&apos;t be undone.
+                          </p>
+
+                          <div className="ml-auto flex gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="bg-destructive text-white hover:bg-destructive/90"
+                              disabled={deletingId === memory.id}
+                              onClick={() => deleteMemory(memory.id)}
+                            >
+                              {deletingId === memory.id
+                                ? "Deleting..."
+                                : "Yes, delete it"}
+                            </Button>
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={deletingId === memory.id}
+                              onClick={() => setConfirmDeleteId(null)}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {deleteMessages[memory.id] && (
+                        <Alert variant="destructive" className="mb-4">
+                          <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+                          <span>{deleteMessages[memory.id]}</span>
+                        </Alert>
+                      )}
+
+                      {pendingPhoto?.memoryId === memory.id && (
+                        <div className="mb-4 rounded-xl border border-dashed border-border bg-muted p-3">
+                          <p className="mb-2 text-[11px] font-bold tracking-[0.6px] text-faint uppercase">
+                            Preview -- not saved yet
+                          </p>
+
+                          <img
+                            src={pendingPhoto.previewUrl}
+                            alt="Selected photo preview"
+                            className="mb-3 h-[160px] w-full rounded-lg border border-border object-cover"
+                          />
+
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              type="button"
+                              variant="primary"
+                              size="sm"
+                              onClick={confirmPendingPhoto}
+                              disabled={photoUploading === memory.id}
+                            >
+                              {photoUploading === memory.id
+                                ? "Uploading photo..."
+                                : "Save photo"}
+                            </Button>
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={cancelPendingPhoto}
+                              disabled={photoUploading === memory.id}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
 
                       {photoMessages[memory.id] && (
                         <Alert

@@ -3,9 +3,10 @@ import { BookOpen, Loader2, Volume2 } from "lucide-react";
 
 import { API_URL, PATIENT_ID, usePatient } from "../context/PatientContext";
 import { speakText } from "../lib/speak";
+import { translate } from "../../lib/i18n";
 import PatientTopBar from "../components/PatientTopBar";
 
-function MemoryCard({ memory, language }) {
+function MemoryCard({ memory, language, t }) {
   const [speaking, setSpeaking] = useState(false);
 
   const handleListen = async () => {
@@ -22,9 +23,13 @@ function MemoryCard({ memory, language }) {
       } else {
         await speakText(memory.content, language);
       }
-    } catch {
-      // Quietly do nothing -- a broken "listen" button shouldn't throw a
-      // technical error message at someone looking through their memories.
+    } catch (err) {
+      // Quietly do nothing on screen -- a broken "listen" button shouldn't
+      // throw a technical error message at someone looking through their
+      // memories -- but still log it, so a caregiver checking the browser
+      // console (or a developer) can actually see why it failed instead
+      // of the button just silently doing nothing.
+      console.error("Listen (memory) failed:", err);
     } finally {
       setSpeaking(false);
     }
@@ -59,7 +64,7 @@ function MemoryCard({ memory, language }) {
         ) : (
           <Volume2 className="h-5 w-5" aria-hidden="true" />
         )}
-        Listen
+        {t("listen")}
       </button>
     </div>
   );
@@ -71,6 +76,9 @@ function PatientMemories({ onHome }) {
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const language = patient?.language || "English";
+  const t = (key, vars) => translate(language, key, vars);
 
   useEffect(() => {
     const loadMemories = async () => {
@@ -87,7 +95,7 @@ function PatientMemories({ onHome }) {
 
         if (!response.ok) {
           throw new Error(
-            data.detail || "Could not load your memories."
+            data.detail || t("teach_me_err_load_memories")
           );
         }
 
@@ -104,12 +112,12 @@ function PatientMemories({ onHome }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <PatientTopBar onHome={onHome} label="Your Memories" />
+      <PatientTopBar onHome={onHome} label={t("topbar_memories")} />
 
       <div className="mx-auto max-w-[640px] px-5 py-8 sm:px-8">
         {loading && (
           <p className="text-center text-xl font-bold text-primary">
-            Loading your memories...
+            {t("memories_loading")}
           </p>
         )}
 
@@ -123,7 +131,7 @@ function PatientMemories({ onHome }) {
           <div className="flex flex-col items-center gap-3 rounded-[24px] border-2 border-dashed border-border bg-card p-10 text-center">
             <BookOpen className="h-10 w-10 text-primary" aria-hidden="true" />
             <p className="text-xl font-bold text-foreground">
-              No memories yet.
+              {t("memories_empty")}
             </p>
           </div>
         )}
@@ -135,6 +143,7 @@ function PatientMemories({ onHome }) {
                 key={memory.id}
                 memory={memory}
                 language={patient?.language}
+                t={t}
               />
             ))}
           </div>
